@@ -1,10 +1,11 @@
 // =============================================================
-// views.js — renderizado de las tres pantallas de la SPA.
-// Cada función recibe el elemento contenedor (#app) y pinta su
-// contenido; los "views" de ejercicio también atan los listeners
-// de interactividad (Revisar / Pista / Mostrar respuesta / Explicar).
+// views.js — renderizado de las pantallas de la SPA:
+//   Inicio (áreas) -> Área (capítulos) -> Capítulo -> Ejercicio
+// Reutiliza exactamente las mismas clases CSS que la versión por
+// capítulos (capitulo-card, cuaderno-card, ejercicio-item, …) para
+// no tocar el diseño visual.
 // =============================================================
-import { cargarManifiesto, cargarCapitulo, obtenerEjercicio } from "./data.js";
+import { cargarManifiesto, obtenerArea, cargarCapitulo, obtenerEjercicio, aplanarCapitulos, claveCapitulo } from "./data.js";
 import * as store from "./store.js";
 import { calificar, generarPista, generarExplicacion } from "./grading.js";
 import { actualizarProgresoTopbar } from "./app-shared.js";
@@ -15,34 +16,44 @@ function escaparHtml(s) {
   return div.innerHTML;
 }
 
+async function refrescarProgresoTopbar() {
+  const manifiesto = await cargarManifiesto();
+  actualizarProgresoTopbar(store.progresoLibro(aplanarCapitulos(manifiesto)));
+}
+
 // -------------------------------------------------------------
-// Pantalla de inicio
+// Pantalla de inicio: las 7 grandes áreas del libro
 // -------------------------------------------------------------
 export async function renderHome(app) {
   app.innerHTML = `<p class="cargando">Cargando índice…</p>`;
   const manifiesto = await cargarManifiesto();
-  const progresoTotal = store.progresoLibro(manifiesto);
+  const capitulosPlanos = aplanarCapitulos(manifiesto);
+  const progresoTotal = store.progresoLibro(capitulosPlanos);
 
-  const tarjetas = manifiesto.map((cap) => {
-    if (!cap.disponible) {
+  const tarjetas = manifiesto.map((area) => {
+    const capitulosDeArea = capitulosPlanos.filter((c) => c.areaSlug === area.slug);
+    const hayCapitulos = capitulosDeArea.some((c) => c.disponible);
+
+    if (!area.disponible || !hayCapitulos) {
       return `
         <div class="capitulo-card capitulo-card--bloqueada">
           <div class="capitulo-card-margen"></div>
           <div class="capitulo-card-cuerpo">
             <span class="capitulo-card-area">Próximamente</span>
-            <h3>Capítulo ${cap.numero}</h3>
-            <p>Se agregará en una fase siguiente</p>
+            <h3>${area.icono} ${escaparHtml(area.area)}</h3>
+            <p>${escaparHtml(area.descripcion)}</p>
           </div>
         </div>`;
     }
-    const pct = store.progresoCapitulo(cap.slug, cap.totalReactivos);
+
+    const pct = store.progresoArea(capitulosDeArea);
     return `
-      <a href="#/capitulo/${cap.slug}" class="capitulo-card capitulo-card--disponible">
+      <a href="#/area/${area.slug}" class="capitulo-card capitulo-card--disponible">
         <div class="capitulo-card-margen"></div>
         <div class="capitulo-card-cuerpo">
-          <span class="capitulo-card-area">${escaparHtml(cap.area)}</span>
-          <h3>Capítulo ${cap.numero}</h3>
-          <p>${escaparHtml(cap.titulo)}</p>
+          <span class="capitulo-card-area">${capitulosDeArea.filter(c=>c.disponible).length} capítulo(s) disponible(s)</span>
+          <h3>${area.icono} ${escaparHtml(area.area)}</h3>
+          <p>${escaparHtml(area.descripcion)}</p>
           <div class="capitulo-card-progreso">
             <div class="capitulo-card-progreso-barra">
               <div class="capitulo-card-progreso-relleno" style="width:${pct}%"></div>
@@ -73,21 +84,87 @@ export async function renderHome(app) {
 }
 
 // -------------------------------------------------------------
-// Pantalla de capítulo
+// Pantalla de área: capítulos de una materia (ej. Aritmética)
 // -------------------------------------------------------------
-export async function renderChapter(app, slug) {
-  app.innerHTML = `<p class="cargando">Cargando capítulo…</p>`;
-  let cap;
-  try {
-    cap = await cargarCapitulo(slug);
-  } catch (e) {
-    app.innerHTML = `<p class="error-carga">${escaparHtml(e.message)}</p><a class="volver" href="#/">← Índice</a>`;
+export async function renderCategory(app, areaSlug) {
+  app.innerHTML = `<p class="cargando">Cargando materia…</p>`;
+  const area = await obtenerArea(areaSlug);
+  if (!area) {
+    app.innerHTML = `<p class="error-carga">Materia no encontrada.</p><a class="volver" href="#/">← Índice</a>`;
     return;
   }
 
-  const manifiesto = await cargarManifiesto();
-  const meta = manifiesto.find((c) => c.slug === slug);
-  const progresoCap = store.progresoCapitulo(slug, meta.totalReactivos);
+  const tarjetas = (area.capitulos || []).map((cap) => {
+    if (!cap.disponible) {
+      return `
+        <div class="capitulo-card capitulo-card--bloqueada">
+          <div class="capitulo-card-margen"></div>
+          <div class="capitulo-card-cuerpo">
+            <span class="capitulo-card-area">Próximamente</span>
+            <h3>Capítulo ${cap.numero}</h3>
+            <p>Se agregará en una fase siguiente</p>
+          </div>
+        </div>`;
+    }
+    const clave = claveCapitulo(areaSlug, cap.numero);
+    const pct = store.progresoCapitulo(clave, cap.totalReactivos);
+    return `
+      <a href="#/area/${areaSlug}/capitulo/${cap.numero}" class="capitulo-card capitulo-card--disponible">
+        <div class="capitulo-card-margen"></div>
+        <div class="capitulo-card-cuerpo">
+          <span class="capitulo-card-area">${escaparHtml(area.area)}</span>
+          <h3>Capítulo ${cap.numero}</h3>
+          <p>${escaparHtml(cap.titulo)}</p>
+          <div class="capitulo-card-progreso">
+            <div class="capitulo-card-progreso-barra">
+              <div class="capitulo-card-progreso-relleno" style="width:${pct}%"></div>
+            </div>
+            <span>${pct}%</span>
+          </div>
+        </div>
+      </a>`;
+  }).join("");
+
+  const capitulosDeArea = aplanarCapitulos(await cargarManifiesto()).filter((c) => c.areaSlug === areaSlug);
+  const progresoArea = store.progresoArea(capitulosDeArea);
+
+  app.innerHTML = `
+    <a class="volver" href="#/">← Índice</a>
+    <section class="capitulo-header">
+      <span class="capitulo-header-area">${area.icono} Materia</span>
+      <h1>${area.icono} ${escaparHtml(area.area)}</h1>
+      <p class="capitulo-header-paginas">${escaparHtml(area.descripcion)}</p>
+      <div class="portada-progreso">
+        <div class="portada-progreso-barra"><div class="portada-progreso-relleno" style="width:${progresoArea}%"></div></div>
+        <span>${progresoArea}% de esta materia completado</span>
+      </div>
+    </section>
+    <section class="indice">
+      <h2 class="indice-titulo">Capítulos</h2>
+      <div class="capitulos-grid">${tarjetas || "<p>Aún no hay capítulos cargados en esta materia. Próximamente.</p>"}</div>
+    </section>
+  `;
+
+  actualizarProgresoTopbar(store.progresoLibro(aplanarCapitulos(await cargarManifiesto())));
+}
+
+// -------------------------------------------------------------
+// Pantalla de capítulo (teoría, ejemplos, ejercicios)
+// -------------------------------------------------------------
+export async function renderChapter(app, areaSlug, numero) {
+  app.innerHTML = `<p class="cargando">Cargando capítulo…</p>`;
+  let cap;
+  try {
+    cap = await cargarCapitulo(areaSlug, numero);
+  } catch (e) {
+    app.innerHTML = `<p class="error-carga">${escaparHtml(e.message)}</p><a class="volver" href="#/area/${areaSlug}">← Índice</a>`;
+    return;
+  }
+
+  const area = await obtenerArea(areaSlug);
+  const clave = claveCapitulo(areaSlug, numero);
+  const meta = area.capitulos.find((c) => c.numero === Number(numero));
+  const progresoCap = store.progresoCapitulo(clave, meta.totalReactivos);
 
   const teoriaHtml = cap.teoria.map((t) => `
     <article class="cuaderno-card">
@@ -112,12 +189,12 @@ export async function renderChapter(app, slug) {
     const total = ej.items.length;
     let completados = 0;
     ej.items.forEach((it) => {
-      const st = store.obtenerEstadoItem(slug, ej.numero_ejercicio, it.item);
+      const st = store.obtenerEstadoItem(clave, ej.numero_ejercicio, it.item);
       if (st?.completado) completados++;
     });
     const pct = total ? Math.round((100 * completados) / total) : 0;
     return `
-      <a class="ejercicio-item" href="#/capitulo/${slug}/ejercicio/${ej.numero_ejercicio}">
+      <a class="ejercicio-item" href="#/area/${areaSlug}/capitulo/${numero}/ejercicio/${ej.numero_ejercicio}">
         <div class="ejercicio-item-numero">${ej.numero_ejercicio}</div>
         <div class="ejercicio-item-cuerpo">
           <h4>Ejercicio ${ej.numero_ejercicio} · ${escaparHtml(ej.titulo)}</h4>
@@ -132,7 +209,7 @@ export async function renderChapter(app, slug) {
   }).join("");
 
   app.innerHTML = `
-    <a class="volver" href="#/">← Índice</a>
+    <a class="volver" href="#/area/${areaSlug}">← ${area.icono} ${escaparHtml(area.area)}</a>
     <section class="capitulo-header">
       <span class="capitulo-header-area">${escaparHtml(cap.area)}</span>
       <h1>Capítulo ${cap.numero} · ${escaparHtml(cap.titulo)}</h1>
@@ -164,7 +241,7 @@ export async function renderChapter(app, slug) {
     </section>
   `;
 
-  actualizarProgresoTopbar(store.progresoLibro(manifiesto));
+  await refrescarProgresoTopbar();
 }
 
 function renderTablaTeoria(tabla) {
@@ -182,25 +259,26 @@ function renderTablaTeoria(tabla) {
 // -------------------------------------------------------------
 // Pantalla de ejercicio
 // -------------------------------------------------------------
-export async function renderExercise(app, slug, numeroEjercicio) {
+export async function renderExercise(app, areaSlug, numero, numeroEjercicio) {
   app.innerHTML = `<p class="cargando">Cargando ejercicio…</p>`;
   let cap;
   try {
-    cap = await cargarCapitulo(slug);
+    cap = await cargarCapitulo(areaSlug, numero);
   } catch (e) {
-    app.innerHTML = `<p class="error-carga">${escaparHtml(e.message)}</p><a class="volver" href="#/">← Índice</a>`;
+    app.innerHTML = `<p class="error-carga">${escaparHtml(e.message)}</p><a class="volver" href="#/area/${areaSlug}">← Índice</a>`;
     return;
   }
   const ej = obtenerEjercicio(cap, numeroEjercicio);
   if (!ej) {
-    app.innerHTML = `<p class="error-carga">Ejercicio no encontrado.</p><a class="volver" href="#/capitulo/${slug}">← Capítulo</a>`;
+    app.innerHTML = `<p class="error-carga">Ejercicio no encontrado.</p><a class="volver" href="#/area/${areaSlug}/capitulo/${numero}">← Capítulo</a>`;
     return;
   }
 
-  const reactivosHtml = ej.items.map((item) => renderReactivo(ej, item)).join("");
+  const clave = claveCapitulo(areaSlug, numero);
+  const reactivosHtml = ej.items.map((item) => renderReactivo(clave, ej, item)).join("");
 
   app.innerHTML = `
-    <a class="volver" href="#/capitulo/${slug}#ejercicios">← Capítulo ${cap.numero}</a>
+    <a class="volver" href="#/area/${areaSlug}/capitulo/${numero}#ejercicios">← Capítulo ${cap.numero}</a>
     <section class="ejercicio-header">
       <span class="capitulo-header-area">${escaparHtml(cap.area)} · Capítulo ${cap.numero}</span>
       <h1>Ejercicio ${ej.numero_ejercicio} · ${escaparHtml(ej.titulo)}</h1>
@@ -210,12 +288,12 @@ export async function renderExercise(app, slug, numeroEjercicio) {
     <section class="reactivos">${reactivosHtml}</section>
   `;
 
-  ej.items.forEach((item) => conectarReactivo(app, slug, ej, item));
-  actualizarProgresoTopbarDesdeManifiesto();
+  ej.items.forEach((item) => conectarReactivo(app, clave, ej, item));
+  await refrescarProgresoTopbar();
 }
 
-function renderReactivo(ej, item) {
-  const estado = store.obtenerEstadoItem(slugActual(), ej.numero_ejercicio, item.item);
+function renderReactivo(clave, ej, item) {
+  const estado = store.obtenerEstadoItem(clave, ej.numero_ejercicio, item.item);
   const chip = estado?.completado
     ? `<span class="reactivo-estado-chip ${estado.revelada ? "revelado" : (estado.correcta ? "ok" : "fallo")}">
          ${estado.revelada ? "👁 vista" : (estado.correcta ? "✔ correcto" : "intentado")}
@@ -257,7 +335,7 @@ function renderReactivo(ej, item) {
     </article>`;
 }
 
-function conectarReactivo(app, slug, ej, item) {
+function conectarReactivo(app, clave, ej, item) {
   const nodo = app.querySelector(`.reactivo[data-item-numero="${item.item}"]`);
   if (!nodo) return;
   const feedback = nodo.querySelector(".reactivo-feedback");
@@ -286,10 +364,6 @@ function conectarReactivo(app, slug, ej, item) {
     return `<div class="feedback-caja ${tipo}"><span class="feedback-sello">${sello}</span><span>${mensaje}</span></div>`;
   }
 
-  function refrescarProgreso() {
-    actualizarProgresoTopbarDesdeManifiesto();
-  }
-
   btnRevisar.addEventListener("click", () => {
     const respuesta = obtenerRespuestaUsuario();
     if (!respuesta) {
@@ -298,7 +372,7 @@ function conectarReactivo(app, slug, ej, item) {
     }
     const itemCompleto = { ...item, tipo: ej.tipo, tema: ej.tema };
     const correcta = calificar(ej.tipo, respuesta, item.respuesta_oficial);
-    store.guardarRespuesta(slug, ej.numero_ejercicio, item.item, respuesta, correcta);
+    store.guardarRespuesta(clave, ej.numero_ejercicio, item.item, respuesta, correcta);
 
     if (correcta) {
       feedback.innerHTML = cajaFeedback("ok", "✔", "¡Correcto!");
@@ -306,13 +380,13 @@ function conectarReactivo(app, slug, ej, item) {
       const pista = generarPista(itemCompleto, ej.tema);
       feedback.innerHTML = cajaFeedback("fallo", "✗", pista);
     }
-    refrescarProgreso();
+    refrescarProgresoTopbar();
   });
 
   btnMostrar.addEventListener("click", () => {
-    store.marcarRevelada(slug, ej.numero_ejercicio, item.item);
+    store.marcarRevelada(clave, ej.numero_ejercicio, item.item);
     feedback.innerHTML = cajaFeedback("info", "📖", `Respuesta oficial del libro: <strong>${escaparHtml(item.respuesta_oficial)}</strong>`);
-    refrescarProgreso();
+    refrescarProgresoTopbar();
   });
 
   btnExplicar.addEventListener("click", () => {
@@ -329,16 +403,4 @@ function conectarReactivo(app, slug, ej, item) {
     div.appendChild(ol);
     feedback.appendChild(div);
   });
-}
-
-// pequeño helper para leer el slug actual desde el hash (usado sólo
-// para recuperar el estado guardado al pintar cada reactivo)
-function slugActual() {
-  const m = location.hash.match(/#\/capitulo\/([^/#]+)/);
-  return m ? m[1] : "";
-}
-
-async function actualizarProgresoTopbarDesdeManifiesto() {
-  const manifiesto = await cargarManifiesto();
-  actualizarProgresoTopbar(store.progresoLibro(manifiesto));
 }

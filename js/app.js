@@ -1,14 +1,15 @@
 // =============================================================
 // app.js — punto de entrada y router SPA (basado en hash, sin
 // dependencias externas, sin recargar la página).
-// Rutas:
-//   #/                                     -> inicio
-//   #/capitulo/<slug>                      -> capítulo
-//   #/capitulo/<slug>/ejercicio/<numero>   -> ejercicio
+// Rutas (jerarquía Inicio -> Área -> Capítulo -> Ejercicio):
+//   #/                                                  -> inicio (áreas)
+//   #/area/<areaSlug>                                   -> capítulos de esa área
+//   #/area/<areaSlug>/capitulo/<numero>                 -> capítulo
+//   #/area/<areaSlug>/capitulo/<numero>/ejercicio/<n>   -> ejercicio
 // =============================================================
-import { renderHome, renderChapter, renderExercise } from "./views.js";
+import { renderHome, renderCategory, renderChapter, renderExercise } from "./views.js";
 import * as store from "./store.js";
-import { cargarManifiesto } from "./data.js";
+import { cargarManifiesto, aplanarCapitulos } from "./data.js";
 import { actualizarProgresoTopbar } from "./app-shared.js";
 
 const app = document.getElementById("app");
@@ -34,19 +35,21 @@ async function enRuta() {
   const hash = location.hash || "#/";
 
   let m;
-  if ((m = hash.match(/^#\/capitulo\/([^/#]+)\/ejercicio\/(\d+)/))) {
-    await renderExercise(app, m[1], Number(m[2]));
-  } else if ((m = hash.match(/^#\/capitulo\/([^/#]+)/))) {
-    await renderChapter(app, m[1]);
-    // permite anclar a #ejercicios / #teoria / #ejemplos dentro del capítulo
+  if ((m = hash.match(/^#\/area\/([^/#]+)\/capitulo\/(\d+)\/ejercicio\/(\d+)/))) {
+    await renderExercise(app, m[1], Number(m[2]), Number(m[3]));
+  } else if ((m = hash.match(/^#\/area\/([^/#]+)\/capitulo\/(\d+)/))) {
+    await renderChapter(app, m[1], Number(m[2]));
     const ancla = hash.split("#")[2];
-    if (ancla) {
-      document.getElementById(ancla)?.scrollIntoView({ behavior: "smooth" });
-    }
+    if (ancla) document.getElementById(ancla)?.scrollIntoView({ behavior: "smooth" });
+  } else if ((m = hash.match(/^#\/area\/([^/#]+)/))) {
+    await renderCategory(app, m[1]);
   } else {
     await renderHome(app);
   }
-  window.scrollTo({ top: hash.includes("ejercicio") || hash === "#/" ? 0 : window.scrollY });
+
+  if (!hash.includes("#ejercicios") && !hash.includes("#teoria") && !hash.includes("#ejemplos")) {
+    window.scrollTo({ top: 0 });
+  }
 }
 
 async function iniciar() {
@@ -55,7 +58,7 @@ async function iniciar() {
 
   try {
     const manifiesto = await cargarManifiesto();
-    actualizarProgresoTopbar(store.progresoLibro(manifiesto));
+    actualizarProgresoTopbar(store.progresoLibro(aplanarCapitulos(manifiesto)));
   } catch (e) {
     console.error(e);
   }

@@ -85,14 +85,28 @@ export function progresoCapitulo(capituloSlug, totalReactivos) {
   return Math.round((100 * contarCompletadosCapitulo(capituloSlug)) / totalReactivos);
 }
 
-/** Progreso (0-100) de todo el libro, dado el manifiesto de capítulos. */
-export function progresoLibro(manifiesto) {
-  const totalLibro = manifiesto.reduce((acc, c) => acc + (c.totalReactivos || 0), 0);
-  if (!totalLibro) return 0;
-  const completadosLibro = manifiesto.reduce(
-    (acc, c) => acc + contarCompletadosCapitulo(c.slug), 0
+/** Progreso (0-100) de un conjunto de capítulos (usa su clave de progreso
+ *  y su totalReactivos). Sirve tanto para una sola área como para el libro
+ *  completo — quien llama decide qué subconjunto de capítulos le pasa. */
+export function progresoConjunto(capitulos) {
+  const total = capitulos.reduce((acc, c) => acc + (c.totalReactivos || 0), 0);
+  if (!total) return 0;
+  const completados = capitulos.reduce(
+    (acc, c) => acc + contarCompletadosCapitulo(c.claveProgreso || c.slug), 0
   );
-  return Math.round((100 * completadosLibro) / totalLibro);
+  return Math.round((100 * completados) / total);
+}
+
+/** Progreso (0-100) de todo el libro, a partir de la lista ya aplanada
+ *  de capítulos (ver data.js -> aplanarCapitulos). */
+export function progresoLibro(capitulosPlanos) {
+  return progresoConjunto(capitulosPlanos);
+}
+
+/** Progreso (0-100) de una sola área, a partir de los capítulos de esa
+ *  área (con claveProgreso ya calculada). */
+export function progresoArea(capitulosDeArea) {
+  return progresoConjunto(capitulosDeArea);
 }
 
 // ---------------- Tema (claro/oscuro) ----------------
