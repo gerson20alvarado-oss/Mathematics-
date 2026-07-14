@@ -35,18 +35,10 @@
     "capitulos": []
   },
   {
-    "area": "Geometría",
-    "slug": "geometria",
+    "area": "Geometría y Trigonometría",
+    "slug": "geometria-trigonometria",
     "icono": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em;vertical-align:-0.125em' aria-hidden='true'><path d='M12 4 L21 20 L3 20 Z'/></svg>",
-    "descripcion": "Figuras planas, cuerpos geométricos y sus propiedades.",
-    "disponible": false,
-    "capitulos": []
-  },
-  {
-    "area": "Trigonometría",
-    "slug": "trigonometria",
-    "icono": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em;vertical-align:-0.125em' aria-hidden='true'><circle cx='12' cy='12' r='9'/><line x1='12' y1='12' x2='19' y2='12'/><line x1='12' y1='12' x2='12' y2='5'/></svg>",
-    "descripcion": "Razones trigonométricas y resolución de triángulos.",
+    "descripcion": "Figuras planas, cuerpos geométricos, razones trigonométricas y resolución de triángulos.",
     "disponible": false,
     "capitulos": []
   },
