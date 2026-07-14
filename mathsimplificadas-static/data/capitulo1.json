@@ -1,0 +1,574 @@
+{
+  "numero": 1,
+  "area": "Aritmética",
+  "titulo": "Números reales",
+  "slug": "capitulo-1-numeros-reales",
+  "pagina_inicio": 4,
+  "pagina_fin": 13,
+  "teoria": [
+    {
+      "titulo": "Clasificación",
+      "contenido": "El hombre ha tenido la necesidad de contar desde su aparición sobre la Tierra hasta nuestros días; para hacerlo se auxilió de los números 1, 2, 3, 4, 5, …, a los que llamó números naturales. Números que construyó con base en el principio de adición; sin embargo, pronto se dio cuenta de que este principio no aplicaba para aquellas situaciones en las que necesitaba descontar. Es entonces que creó los números negativos, así como el elemento neutro (cero), que con los números naturales forman el conjunto de los números enteros:\n\n…, −5, −4, −3, −2, −1, 0, 1, 2, 3, 4, 5, …\n\nAsimismo, se percató de que al tomar sólo una parte de un número surgían los números racionales, que se expresan como el cociente de 2 números enteros, con el divisor distinto de cero, por ejemplo: 2/3, −1/4, 0/5, 6/1, −8/2, …\n\nAquellos números que no es posible expresar como el cociente de 2 números enteros se conocen como números irracionales: √3, ∛23, ∜815, π, …\n\nAl unir los números anteriores se forman los números reales, los cuales se representan en la recta numérica."
+    },
+    {
+      "titulo": "Propiedades",
+      "contenido": "Los números reales son un conjunto cerrado para la suma y la multiplicación, lo que significa que la suma o multiplicación de números reales da como resultado otro número real. De ahí se desprenden las siguientes propiedades:",
+      "tabla": {
+        "columnas": [
+          "Propiedad",
+          "Suma",
+          "Multiplicación",
+          "Ejemplo"
+        ],
+        "filas": [
+          [
+            "Cerradura",
+            "a + b ∈ R",
+            "a · b ∈ R",
+            "3 + 5 = 8 ∈ R ; (2)(−3) = −6 ∈ R"
+          ],
+          [
+            "Conmutativa",
+            "a + b = b + a",
+            "a · b = b · a",
+            "2/3 + 7/1 = 7/1 + 2/3 ; (2)(1/5) = (1/5)(2)"
+          ],
+          [
+            "Asociativa",
+            "a + (b + c) = (a + b) + c",
+            "a(b · c) = (a · b)c",
+            "5 + (3 + 4) = (5 + 3) + 4 ; 3·(2·5) = (3·2)·5"
+          ],
+          [
+            "Elemento neutro",
+            "a + 0 = a",
+            "a · 1 = a",
+            "5 + 0 = 5 ; 7 · 1 = 7"
+          ],
+          [
+            "Inverso",
+            "a + (−a) = 0",
+            "a · 1/a = 1",
+            "2 + (−2) = 0 ; 5 · 1/5 = 1"
+          ],
+          [
+            "Distributiva",
+            "a(b + c) = ab + ac",
+            "",
+            "2(7 + 3) = 2·7 + 2·3 ; 5·4 + 5·8 = 5(4 + 8)"
+          ]
+        ]
+      }
+    },
+    {
+      "titulo": "Lectura y escritura",
+      "contenido": "Un número en el sistema decimal se escribe o se lee con base en periodos: unidades, millares, millones, millares de millón y billones. Cada periodo se divide en clases formadas por unidades, decenas y centenas.\n\nPara escribir numéricamente una cantidad, se identifican los periodos y las clases de dicho número, aplicando el principio aditivo: se suma el valor de cada palabra según el periodo al que pertenece."
+    },
+    {
+      "titulo": "Orden",
+      "contenido": "El conjunto de los números reales se ordena con base en las siguientes relaciones de orden:\n\n<  menor que\n>  mayor que\n=  igual que\n\nPostulado de tricotomía: si a, b ∈ R, entonces al compararlos se puede presentar sólo uno de estos casos: a > b, a < b, a = b.\n\nPostulado transitivo: sean a, b, c ∈ R; si a > b y b > c, entonces a > c.\n\nPostulado aditivo: para a, b, c ∈ R, si a > b, entonces a + c > b + c.\n\nPostulado multiplicativo: sean a, b, c ∈ R, con a > b: si c > 0 (c es positivo), entonces ac > bc; si c < 0 (c es negativo), entonces ac < bc.\n\nOtra forma de comparar los números reales es colocarlos en la recta numérica. Si el número a se encuentra a la derecha de b, entonces a > b; si se encuentra a la izquierda, entonces a < b. Cualquier número negativo es menor que cero o que cualquier número positivo, ya que se encuentra a la izquierda de éstos en la recta numérica.\n\nPara comparar dos números racionales (fracciones) se realiza un producto cruzado: se multiplica el numerador de la primera fracción por el denominador de la segunda, y el denominador de la primera por el numerador de la segunda; el signo que resulte entre esos dos productos es el mismo que existe entre las fracciones originales."
+    },
+    {
+      "titulo": "Valor absoluto de un número",
+      "contenido": "Es la distancia que existe desde cero hasta el punto que representa a dicha cantidad en la recta numérica. El valor absoluto de un número a se representa como |a|. Como es una distancia, el valor absoluto siempre es positivo o cero, sin importar el signo del número original."
+    },
+    {
+      "titulo": "Valor absoluto y relativo del sistema posicional decimal",
+      "contenido": "El sistema decimal emplea los dígitos 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, que al combinarse mediante ciertas reglas pueden representar cualquier cantidad. En este sistema las unidades se agrupan de 10 en 10, razón por la cual recibe su nombre.\n\nPara nombrar cifras mayores que 9 se emplea el principio posicional y aditivo. En el principio posicional, el valor absoluto de un dígito es el número que representa, y su valor relativo es el que adquiere de acuerdo con la posición que tiene dentro del número.\n\nDe acuerdo con el principio aditivo, toda cantidad mayor que 9 se expresa como la suma de los valores relativos de sus dígitos; a esto se le denomina forma desarrollada."
+    }
+  ],
+  "ejemplos": [
+    {
+      "titulo": "Lectura de números",
+      "contenido": "Lee el número 37.\nSolución: 37 se acomoda de derecha a izquierda en el periodo de las unidades. Lo forman 3 decenas y 7 unidades: \"treinta y siete\".\n\nLee el número 824.\nSolución: 824 se acomoda en el periodo de las unidades. Lo forman 8 centenas, 2 decenas y 4 unidades: \"ochocientos veinticuatro\".\n\nLee el número 37 643.\nSolución: se acomoda en los periodos de millares y unidades: \"treinta y siete mil seiscientos cuarenta y tres\".\n\nLee el número 52 384 273.\nSolución: se acomoda en los periodos de millones, millares y unidades: \"cincuenta y dos millones trescientos ochenta y cuatro mil doscientos setenta y tres\"."
+    },
+    {
+      "titulo": "Escritura numérica",
+      "contenido": "Expresa \"cuatrocientos ochenta y siete\" numéricamente.\nSolución: cuatrocientos = 400, ochenta = 80, siete = 7. Al sumar (principio aditivo): 400 + 80 + 7 = 487.\n\nEscribe con número: \"siete mil cuatrocientos treinta y cinco\".\nSolución: siete mil = 7 000, cuatrocientos = 400, treinta = 30, cinco = 5. Suma: 7 000 + 400 + 30 + 5 = 7 435.\n\nExpresa numéricamente: \"doscientos noventa y nueve millones setecientos ocho\".\nSolución: 200 000 000 + 90 000 000 + 9 000 000 + 700 + 8 = 299 000 708."
+    },
+    {
+      "titulo": "Comparación de números enteros y decimales",
+      "contenido": "3 < 8 porque 3 es menor que 8. 12 > −7 porque 12 es mayor que −7. En la recta numérica: 4 > 1 porque \"4\" está a la derecha de \"1\"; 2 > −2 porque \"2\" está a la derecha de \"−2\"; −3 < −1 porque \"−3\" está a la izquierda de \"−1\"; −3 < 0 porque \"−3\" está a la izquierda de \"0\"."
+    },
+    {
+      "titulo": "Comparación de fracciones (producto cruzado)",
+      "contenido": "Compara 7/8 y 5/6.\nSolución: se multiplica el numerador 7 de la primera fracción por el denominador 6 de la segunda (7×6=42), y el denominador 8 de la primera por el numerador 5 de la segunda (8×5=40). Se comparan los productos: 42 > 40, por lo tanto 7/8 > 5/6.\n\nCompara −2/3 y −1/8.\nSolución: (−2)(8) = −16 y (3)(−1) = −3. Como −16 < −3, entonces −2/3 < −1/8."
+    },
+    {
+      "titulo": "Valor absoluto",
+      "contenido": "Determina el valor absoluto de −3.\nSolución: en la recta numérica hay 3 unidades de distancia entre 0 y −3, por lo tanto |−3| = 3.\n\nEncuentra el valor absoluto de 8.\nSolución: la distancia entre el origen y 8 es de 8 unidades, por lo tanto |8| = 8.\n\n¿Cuál es el valor absoluto de −7/2?\nSolución: hay siete medios de distancia entre 0 y el punto dado, por lo tanto |−7/2| = 7/2."
+    },
+    {
+      "titulo": "Forma desarrollada",
+      "contenido": "Expresa en forma desarrollada 72 435.\nSolución: se obtiene el valor relativo de cada dígito: 7→70 000, 2→2 000, 4→400, 3→30, 5→5. Por lo tanto: 72 435 = 70 000 + 2 000 + 400 + 30 + 5.\n\nExpresa el número 1 023 000 en forma desarrollada.\nSolución: 1 023 000 = 1 000 000 + 20 000 + 3 000.\n\nExpresa en forma desarrollada el número 373 894.\nSolución: 373 894 = 300 000 + 70 000 + 3 000 + 800 + 90 + 4."
+    }
+  ],
+  "ejercicios": [
+    {
+      "numero_ejercicio": 2,
+      "titulo": "Escritura de números con letra",
+      "instrucciones": "Escribe con letras las siguientes cifras.",
+      "tipo": "texto",
+      "pagina": 7,
+      "items": [
+        {
+          "item": 1,
+          "enunciado": "45",
+          "respuesta_oficial": "Cuarenta y cinco"
+        },
+        {
+          "item": 2,
+          "enunciado": "80",
+          "respuesta_oficial": "Ochenta"
+        },
+        {
+          "item": 3,
+          "enunciado": "523",
+          "respuesta_oficial": "Quinientos veintitrés"
+        },
+        {
+          "item": 4,
+          "enunciado": "770",
+          "respuesta_oficial": "Setecientos setenta"
+        },
+        {
+          "item": 5,
+          "enunciado": "597",
+          "respuesta_oficial": "Quinientos noventa y siete"
+        },
+        {
+          "item": 6,
+          "enunciado": "8 302",
+          "respuesta_oficial": "Ocho mil trescientos dos"
+        },
+        {
+          "item": 7,
+          "enunciado": "9 016",
+          "respuesta_oficial": "Nueve mil dieciséis"
+        },
+        {
+          "item": 8,
+          "enunciado": "20 018",
+          "respuesta_oficial": "Veinte mil dieciocho"
+        },
+        {
+          "item": 9,
+          "enunciado": "11 011",
+          "respuesta_oficial": "Once mil once"
+        },
+        {
+          "item": 10,
+          "enunciado": "9 072",
+          "respuesta_oficial": "Nueve mil setenta y dos"
+        },
+        {
+          "item": 11,
+          "enunciado": "12 103",
+          "respuesta_oficial": "Doce mil ciento tres"
+        },
+        {
+          "item": 12,
+          "enunciado": "22 500",
+          "respuesta_oficial": "Veintidós mil quinientos"
+        },
+        {
+          "item": 13,
+          "enunciado": "34 480",
+          "respuesta_oficial": "Treinta y cuatro mil cuatrocientos ochenta"
+        },
+        {
+          "item": 14,
+          "enunciado": "108 214",
+          "respuesta_oficial": "Ciento ocho mil doscientos catorce"
+        },
+        {
+          "item": 15,
+          "enunciado": "3 084 000",
+          "respuesta_oficial": "Tres millones ochenta y cuatro mil"
+        },
+        {
+          "item": 16,
+          "enunciado": "1 215 364",
+          "respuesta_oficial": "Un millón doscientos quince mil trescientos sesenta y cuatro"
+        },
+        {
+          "item": 17,
+          "enunciado": "5 683 040",
+          "respuesta_oficial": "Cinco millones seiscientos ochenta y tres mil cuarenta"
+        },
+        {
+          "item": 18,
+          "enunciado": "13 000 075",
+          "respuesta_oficial": "Trece millones setenta y cinco"
+        }
+      ],
+      "tema": "Lectura y escritura"
+    },
+    {
+      "numero_ejercicio": 3,
+      "titulo": "Escritura numérica a partir de texto",
+      "instrucciones": "Representa numéricamente las siguientes cantidades.",
+      "tipo": "texto",
+      "pagina": 8,
+      "items": [
+        {
+          "item": 1,
+          "enunciado": "Quinientos veintiuno.",
+          "respuesta_oficial": "521"
+        },
+        {
+          "item": 2,
+          "enunciado": "Dieciséis mil.",
+          "respuesta_oficial": "16 000"
+        },
+        {
+          "item": 3,
+          "enunciado": "Mil doscientos noventa y nueve.",
+          "respuesta_oficial": "1 299"
+        },
+        {
+          "item": 4,
+          "enunciado": "Treinta y cinco mil.",
+          "respuesta_oficial": "35 000"
+        },
+        {
+          "item": 5,
+          "enunciado": "Ocho mil cuatrocientos.",
+          "respuesta_oficial": "8 400"
+        },
+        {
+          "item": 6,
+          "enunciado": "Seiscientos uno.",
+          "respuesta_oficial": "601"
+        },
+        {
+          "item": 7,
+          "enunciado": "Setecientos mil ciento treinta y ocho.",
+          "respuesta_oficial": "700 138"
+        },
+        {
+          "item": 8,
+          "enunciado": "Un millón quinientos veintisiete mil cuatrocientos veintiocho.",
+          "respuesta_oficial": "1 527 428"
+        },
+        {
+          "item": 9,
+          "enunciado": "Un millón ciento ocho mil doce.",
+          "respuesta_oficial": "1 108 012"
+        },
+        {
+          "item": 10,
+          "enunciado": "Ciento cuarenta y cuatro millones, ciento cuarenta y cuatro.",
+          "respuesta_oficial": "144 000 144"
+        },
+        {
+          "item": 11,
+          "enunciado": "Ciento dieciséis millones, trescientos ochenta y seis mil quinientos catorce.",
+          "respuesta_oficial": "116 386 514"
+        },
+        {
+          "item": 12,
+          "enunciado": "Quinientos cinco millones doscientos diez.",
+          "respuesta_oficial": "505 000 210"
+        }
+      ],
+      "tema": "Lectura y escritura"
+    },
+    {
+      "numero_ejercicio": 4,
+      "titulo": "Comparación de números reales",
+      "instrucciones": "Compara las siguientes cantidades y coloca los símbolos >, < o =, según corresponda.",
+      "tipo": "comparacion",
+      "pagina": 9,
+      "items": [
+        {
+          "item": 1,
+          "enunciado": "28  ___  35",
+          "respuesta_oficial": "<"
+        },
+        {
+          "item": 2,
+          "enunciado": "1 125  ___  1 105",
+          "respuesta_oficial": ">"
+        },
+        {
+          "item": 3,
+          "enunciado": "−372  ___  372",
+          "respuesta_oficial": "<"
+        },
+        {
+          "item": 4,
+          "enunciado": "−483  ___  −840",
+          "respuesta_oficial": ">"
+        },
+        {
+          "item": 5,
+          "enunciado": "5 397  ___  −1 284",
+          "respuesta_oficial": ">"
+        },
+        {
+          "item": 6,
+          "enunciado": "−844.5  ___  0",
+          "respuesta_oficial": "<"
+        },
+        {
+          "item": 7,
+          "enunciado": "8/4  ___  2",
+          "respuesta_oficial": "="
+        },
+        {
+          "item": 8,
+          "enunciado": "12 000  ___  120 000",
+          "respuesta_oficial": "<"
+        },
+        {
+          "item": 9,
+          "enunciado": "−1 000 000  ___  −100 000",
+          "respuesta_oficial": "<"
+        },
+        {
+          "item": 10,
+          "enunciado": "121/11  ___  44/4",
+          "respuesta_oficial": "="
+        },
+        {
+          "item": 11,
+          "enunciado": "−7/3  ___  1.5",
+          "respuesta_oficial": "<"
+        },
+        {
+          "item": 12,
+          "enunciado": "0.5  ___  −1273/9",
+          "respuesta_oficial": ">"
+        }
+      ],
+      "tema": "Orden"
+    },
+    {
+      "numero_ejercicio": 5,
+      "titulo": "Comparación de fracciones",
+      "instrucciones": "Compara las siguientes cantidades y coloca los símbolos >, < o =, según corresponda.",
+      "tipo": "comparacion",
+      "pagina": 10,
+      "items": [
+        {
+          "item": 1,
+          "enunciado": "2/3  ___  1/4",
+          "respuesta_oficial": ">"
+        },
+        {
+          "item": 2,
+          "enunciado": "3/5  ___  7/8",
+          "respuesta_oficial": "<"
+        },
+        {
+          "item": 3,
+          "enunciado": "−1/6  ___  −1/2",
+          "respuesta_oficial": ">"
+        },
+        {
+          "item": 4,
+          "enunciado": "7/9  ___  21/27",
+          "respuesta_oficial": "="
+        },
+        {
+          "item": 5,
+          "enunciado": "11/4  ___  12/5",
+          "respuesta_oficial": ">"
+        },
+        {
+          "item": 6,
+          "enunciado": "6/4  ___  18/12",
+          "respuesta_oficial": "="
+        },
+        {
+          "item": 7,
+          "enunciado": "−7/7  ___  0",
+          "respuesta_oficial": "<"
+        },
+        {
+          "item": 8,
+          "enunciado": "−5/10  ___  13/26",
+          "respuesta_oficial": "<"
+        },
+        {
+          "item": 9,
+          "enunciado": "5/2  ___  1",
+          "respuesta_oficial": ">"
+        },
+        {
+          "item": 10,
+          "enunciado": "17/6  ___  3",
+          "respuesta_oficial": "<"
+        },
+        {
+          "item": 11,
+          "enunciado": "−3  ___  −39/13",
+          "respuesta_oficial": "="
+        },
+        {
+          "item": 12,
+          "enunciado": "4/3  ___  4/9",
+          "respuesta_oficial": ">"
+        }
+      ],
+      "tema": "Orden"
+    },
+    {
+      "numero_ejercicio": 6,
+      "titulo": "Valor absoluto",
+      "instrucciones": "Determina el valor absoluto de las siguientes cantidades.",
+      "tipo": "texto",
+      "pagina": 11,
+      "items": [
+        {
+          "item": 1,
+          "enunciado": "|−10|",
+          "respuesta_oficial": "10"
+        },
+        {
+          "item": 2,
+          "enunciado": "|7/4|",
+          "respuesta_oficial": "7/4"
+        },
+        {
+          "item": 3,
+          "enunciado": "|−9|",
+          "respuesta_oficial": "9"
+        },
+        {
+          "item": 4,
+          "enunciado": "|5/2|",
+          "respuesta_oficial": "5/2"
+        },
+        {
+          "item": 5,
+          "enunciado": "|−1/3|",
+          "respuesta_oficial": "1/3"
+        },
+        {
+          "item": 6,
+          "enunciado": "|−2.5|",
+          "respuesta_oficial": "2.5"
+        },
+        {
+          "item": 7,
+          "enunciado": "|−13/9|",
+          "respuesta_oficial": "13/9"
+        },
+        {
+          "item": 8,
+          "enunciado": "|9/3|",
+          "respuesta_oficial": "3"
+        },
+        {
+          "item": 9,
+          "enunciado": "|3.2|",
+          "respuesta_oficial": "3.2"
+        },
+        {
+          "item": 10,
+          "enunciado": "|−6.8|",
+          "respuesta_oficial": "6.8"
+        },
+        {
+          "item": 11,
+          "enunciado": "|0|",
+          "respuesta_oficial": "0"
+        },
+        {
+          "item": 12,
+          "enunciado": "|−0.0001|",
+          "respuesta_oficial": "0.0001"
+        }
+      ],
+      "tema": "Valor absoluto de un número"
+    },
+    {
+      "numero_ejercicio": 8,
+      "titulo": "Forma desarrollada",
+      "instrucciones": "Expresa en forma desarrollada los siguientes números.",
+      "tipo": "texto",
+      "pagina": 13,
+      "items": [
+        {
+          "item": 1,
+          "enunciado": "75",
+          "respuesta_oficial": "70 + 5"
+        },
+        {
+          "item": 2,
+          "enunciado": "132",
+          "respuesta_oficial": "100 + 30 + 2"
+        },
+        {
+          "item": 3,
+          "enunciado": "428",
+          "respuesta_oficial": "400 + 20 + 8"
+        },
+        {
+          "item": 4,
+          "enunciado": "510",
+          "respuesta_oficial": "500 + 10"
+        },
+        {
+          "item": 5,
+          "enunciado": "3 002",
+          "respuesta_oficial": "3 000 + 2"
+        },
+        {
+          "item": 6,
+          "enunciado": "7 491",
+          "respuesta_oficial": "7 000 + 400 + 90 + 1"
+        },
+        {
+          "item": 7,
+          "enunciado": "15 204",
+          "respuesta_oficial": "10 000 + 5 000 + 200 + 4"
+        },
+        {
+          "item": 8,
+          "enunciado": "32 790",
+          "respuesta_oficial": "30 000 + 2 000 + 700 + 90"
+        },
+        {
+          "item": 9,
+          "enunciado": "49 835",
+          "respuesta_oficial": "40 000 + 9 000 + 800 + 30 + 5"
+        },
+        {
+          "item": 10,
+          "enunciado": "246 932",
+          "respuesta_oficial": "200 000 + 40 000 + 6 000 + 900 + 30 + 2"
+        },
+        {
+          "item": 11,
+          "enunciado": "300 000",
+          "respuesta_oficial": "300 000"
+        },
+        {
+          "item": 12,
+          "enunciado": "475 314",
+          "respuesta_oficial": "400 000 + 70 000 + 5 000 + 300 + 10 + 4"
+        },
+        {
+          "item": 13,
+          "enunciado": "120 983",
+          "respuesta_oficial": "100 000 + 20 000 + 900 + 80 + 3"
+        },
+        {
+          "item": 14,
+          "enunciado": "1 320 865",
+          "respuesta_oficial": "1 000 000 + 300 000 + 20 000 + 800 + 60 + 5"
+        },
+        {
+          "item": 15,
+          "enunciado": "3 742 958",
+          "respuesta_oficial": "3 000 000 + 700 000 + 40 000 + 2 000 + 900 + 50 + 8"
+        }
+      ],
+      "tema": "Valor absoluto y relativo del sistema posicional decimal"
+    }
+  ],
+  "nota_alcance": "Los ejercicios 1 y 7 de este capítulo contienen notación matemática (fracciones apiladas y dígitos resaltados dentro de números) que el PDF no permite extraer con fidelidad como texto plano. Se omiten en esta fase para no arriesgar errores en las respuestas oficiales; se incorporarán en una fase de refinamiento usando recorte de imagen del libro."
+}

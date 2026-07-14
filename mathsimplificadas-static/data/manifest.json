@@ -1,0 +1,21 @@
+[
+  {
+    "numero": 1,
+    "area": "Aritmética",
+    "titulo": "Números reales",
+    "slug": "capitulo-1",
+    "archivo": "capitulo1.json",
+    "paginaInicio": 4,
+    "paginaFin": 13,
+    "totalReactivos": 81,
+    "disponible": true
+  },
+  { "numero": 2, "area": "Aritmética", "titulo": "Próximamente", "slug": "capitulo-2", "archivo": null, "totalReactivos": 0, "disponible": false },
+  { "numero": 3, "area": "Aritmética", "titulo": "Próximamente", "slug": "capitulo-3", "archivo": null, "totalReactivos": 0, "disponible": false },
+  { "numero": 4, "area": "Aritmética", "titulo": "Próximamente", "slug": "capitulo-4", "archivo": null, "totalReactivos": 0, "disponible": false },
+  { "numero": 5, "area": "Aritmética", "titulo": "Próximamente", "slug": "capitulo-5", "archivo": null, "totalReactivos": 0, "disponible": false },
+  { "numero": 6, "area": "Aritmética", "titulo": "Próximamente", "slug": "capitulo-6", "archivo": null, "totalReactivos": 0, "disponible": false },
+  { "numero": 7, "area": "Aritmética", "titulo": "Próximamente", "slug": "capitulo-7", "archivo": null, "totalReactivos": 0, "disponible": false },
+  { "numero": 8, "area": "Aritmética", "titulo": "Próximamente", "slug": "capitulo-8", "archivo": null, "totalReactivos": 0, "disponible": false },
+  { "numero": 9, "area": "Aritmética", "titulo": "Próximamente", "slug": "capitulo-9", "archivo": null, "totalReactivos": 0, "disponible": false }
+]
