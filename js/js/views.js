@@ -1,0 +1,406 @@
+// =============================================================
+// views.js — renderizado de las pantallas de la SPA:
+//   Inicio (áreas) -> Área (capítulos) -> Capítulo -> Ejercicio
+// Reutiliza exactamente las mismas clases CSS que la versión por
+// capítulos (capitulo-card, cuaderno-card, ejercicio-item, …) para
+// no tocar el diseño visual.
+// =============================================================
+import { cargarManifiesto, obtenerArea, cargarCapitulo, obtenerEjercicio, aplanarCapitulos, claveCapitulo } from "./data.js";
+import * as store from "./store.js";
+import { calificar, generarPista, generarExplicacion } from "./grading.js";
+import { actualizarProgresoTopbar } from "./app-shared.js";
+
+function escaparHtml(s) {
+  const div = document.createElement("div");
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+async function refrescarProgresoTopbar() {
+  const manifiesto = await cargarManifiesto();
+  actualizarProgresoTopbar(store.progresoLibro(aplanarCapitulos(manifiesto)));
+}
+
+// -------------------------------------------------------------
+// Pantalla de inicio: las 7 grandes áreas del libro
+// -------------------------------------------------------------
+export async function renderHome(app) {
+  app.innerHTML = `<p class="cargando">Cargando índice…</p>`;
+  const manifiesto = await cargarManifiesto();
+  const capitulosPlanos = aplanarCapitulos(manifiesto);
+  const progresoTotal = store.progresoLibro(capitulosPlanos);
+
+  const tarjetas = manifiesto.map((area) => {
+    const capitulosDeArea = capitulosPlanos.filter((c) => c.areaSlug === area.slug);
+    const hayCapitulos = capitulosDeArea.some((c) => c.disponible);
+
+    if (!area.disponible || !hayCapitulos) {
+      return `
+        <div class="capitulo-card capitulo-card--bloqueada">
+          <div class="capitulo-card-margen"></div>
+          <div class="capitulo-card-cuerpo">
+            <span class="capitulo-card-area">Próximamente</span>
+            <h3>${area.icono} ${escaparHtml(area.area)}</h3>
+            <p>${escaparHtml(area.descripcion)}</p>
+          </div>
+        </div>`;
+    }
+
+    const pct = store.progresoArea(capitulosDeArea);
+    return `
+      <a href="#/area/${area.slug}" class="capitulo-card capitulo-card--disponible">
+        <div class="capitulo-card-margen"></div>
+        <div class="capitulo-card-cuerpo">
+          <span class="capitulo-card-area">${capitulosDeArea.filter(c=>c.disponible).length} capítulo(s) disponible(s)</span>
+          <h3>${area.icono} ${escaparHtml(area.area)}</h3>
+          <p>${escaparHtml(area.descripcion)}</p>
+          <div class="capitulo-card-progreso">
+            <div class="capitulo-card-progreso-barra">
+              <div class="capitulo-card-progreso-relleno" style="width:${pct}%"></div>
+            </div>
+            <span>${pct}%</span>
+          </div>
+        </div>
+      </a>`;
+  }).join("");
+
+  app.innerHTML = `
+    <section class="portada">
+      <p class="portada-eyebrow">CONAMAT · Pearson · 2.ª edición</p>
+      <h1 class="portada-titulo">Matemáticas <em>Simplificadas</em></h1>
+      <p class="portada-sub">Aritmética · Álgebra · Geometría · Trigonometría · Geometría analítica · Cálculo diferencial · Cálculo integral</p>
+      <div class="portada-progreso">
+        <div class="portada-progreso-barra"><div class="portada-progreso-relleno" style="width:${progresoTotal}%"></div></div>
+        <span>${progresoTotal}% del libro completado</span>
+      </div>
+    </section>
+    <section class="indice">
+      <h2 class="indice-titulo">Índice</h2>
+      <div class="capitulos-grid">${tarjetas}</div>
+    </section>
+  `;
+
+  actualizarProgresoTopbar(progresoTotal);
+}
+
+// -------------------------------------------------------------
+// Pantalla de área: capítulos de una materia (ej. Aritmética)
+// -------------------------------------------------------------
+export async function renderCategory(app, areaSlug) {
+  app.innerHTML = `<p class="cargando">Cargando materia…</p>`;
+  const area = await obtenerArea(areaSlug);
+  if (!area) {
+    app.innerHTML = `<p class="error-carga">Materia no encontrada.</p><a class="volver" href="#/">← Índice</a>`;
+    return;
+  }
+
+  const tarjetas = (area.capitulos || []).map((cap) => {
+    if (!cap.disponible) {
+      return `
+        <div class="capitulo-card capitulo-card--bloqueada">
+          <div class="capitulo-card-margen"></div>
+          <div class="capitulo-card-cuerpo">
+            <span class="capitulo-card-area">Próximamente</span>
+            <h3>Capítulo ${cap.numero}</h3>
+            <p>Se agregará en una fase siguiente</p>
+          </div>
+        </div>`;
+    }
+    const clave = claveCapitulo(areaSlug, cap.numero);
+    const pct = store.progresoCapitulo(clave, cap.totalReactivos);
+    return `
+      <a href="#/area/${areaSlug}/capitulo/${cap.numero}" class="capitulo-card capitulo-card--disponible">
+        <div class="capitulo-card-margen"></div>
+        <div class="capitulo-card-cuerpo">
+          <span class="capitulo-card-area">${escaparHtml(area.area)}</span>
+          <h3>Capítulo ${cap.numero}</h3>
+          <p>${escaparHtml(cap.titulo)}</p>
+          <div class="capitulo-card-progreso">
+            <div class="capitulo-card-progreso-barra">
+              <div class="capitulo-card-progreso-relleno" style="width:${pct}%"></div>
+            </div>
+            <span>${pct}%</span>
+          </div>
+        </div>
+      </a>`;
+  }).join("");
+
+  const capitulosDeArea = aplanarCapitulos(await cargarManifiesto()).filter((c) => c.areaSlug === areaSlug);
+  const progresoArea = store.progresoArea(capitulosDeArea);
+
+  app.innerHTML = `
+    <a class="volver" href="#/">← Índice</a>
+    <section class="capitulo-header">
+      <span class="capitulo-header-area">${area.icono} Materia</span>
+      <h1>${area.icono} ${escaparHtml(area.area)}</h1>
+      <p class="capitulo-header-paginas">${escaparHtml(area.descripcion)}</p>
+      <div class="portada-progreso">
+        <div class="portada-progreso-barra"><div class="portada-progreso-relleno" style="width:${progresoArea}%"></div></div>
+        <span>${progresoArea}% de esta materia completado</span>
+      </div>
+    </section>
+    <section class="indice">
+      <h2 class="indice-titulo">Capítulos</h2>
+      <div class="capitulos-grid">${tarjetas || "<p>Aún no hay capítulos cargados en esta materia. Próximamente.</p>"}</div>
+    </section>
+  `;
+
+  actualizarProgresoTopbar(store.progresoLibro(aplanarCapitulos(await cargarManifiesto())));
+}
+
+// -------------------------------------------------------------
+// Pantalla de capítulo (teoría, ejemplos, ejercicios)
+// -------------------------------------------------------------
+export async function renderChapter(app, areaSlug, numero) {
+  app.innerHTML = `<p class="cargando">Cargando capítulo…</p>`;
+  let cap;
+  try {
+    cap = await cargarCapitulo(areaSlug, numero);
+  } catch (e) {
+    app.innerHTML = `<p class="error-carga">${escaparHtml(e.message)}</p><a class="volver" href="#/area/${areaSlug}">← Índice</a>`;
+    return;
+  }
+
+  const area = await obtenerArea(areaSlug);
+  const clave = claveCapitulo(areaSlug, numero);
+  const meta = area.capitulos.find((c) => c.numero === Number(numero));
+  const progresoCap = store.progresoCapitulo(clave, meta.totalReactivos);
+
+  const teoriaHtml = cap.teoria.map((t) => `
+    <article class="cuaderno-card">
+      <div class="cuaderno-card-margen"></div>
+      <div class="cuaderno-card-cuerpo">
+        <h3>${escaparHtml(t.titulo)}</h3>
+        ${t.contenido.split("\n\n").map((p) => `<p>${escaparHtml(p)}</p>`).join("")}
+        ${t.tabla ? renderTablaTeoria(t.tabla) : ""}
+      </div>
+    </article>`).join("");
+
+  const ejemplosHtml = cap.ejemplos.map((e) => `
+    <article class="cuaderno-card cuaderno-card--ejemplo">
+      <div class="cuaderno-card-margen"></div>
+      <div class="cuaderno-card-cuerpo">
+        <h3>${escaparHtml(e.titulo)}</h3>
+        ${e.contenido.split("\n\n").map((p) => `<p>${escaparHtml(p)}</p>`).join("")}
+      </div>
+    </article>`).join("");
+
+  const ejerciciosHtml = cap.ejercicios.map((ej) => {
+    const total = ej.items.length;
+    let completados = 0;
+    ej.items.forEach((it) => {
+      const st = store.obtenerEstadoItem(clave, ej.numero_ejercicio, it.item);
+      if (st?.completado) completados++;
+    });
+    const pct = total ? Math.round((100 * completados) / total) : 0;
+    return `
+      <a class="ejercicio-item" href="#/area/${areaSlug}/capitulo/${numero}/ejercicio/${ej.numero_ejercicio}">
+        <div class="ejercicio-item-numero">${ej.numero_ejercicio}</div>
+        <div class="ejercicio-item-cuerpo">
+          <h4>Ejercicio ${ej.numero_ejercicio} · ${escaparHtml(ej.titulo)}</h4>
+          <p>${escaparHtml(ej.instrucciones)}</p>
+          <div class="ejercicio-item-progreso">
+            <div class="ejercicio-item-progreso-barra"><div class="ejercicio-item-progreso-relleno" style="width:${pct}%"></div></div>
+            <span>${completados}/${total} reactivos</span>
+          </div>
+        </div>
+        <div class="ejercicio-item-flecha">→</div>
+      </a>`;
+  }).join("");
+
+  app.innerHTML = `
+    <a class="volver" href="#/area/${areaSlug}">← ${area.icono} ${escaparHtml(area.area)}</a>
+    <section class="capitulo-header">
+      <span class="capitulo-header-area">${escaparHtml(cap.area)}</span>
+      <h1>Capítulo ${cap.numero} · ${escaparHtml(cap.titulo)}</h1>
+      <p class="capitulo-header-paginas">Libro, páginas ${cap.pagina_inicio}–${cap.pagina_fin}</p>
+      <div class="portada-progreso">
+        <div class="portada-progreso-barra"><div class="portada-progreso-relleno" style="width:${progresoCap}%"></div></div>
+        <span>${progresoCap}% del capítulo completado</span>
+      </div>
+      ${cap.nota_alcance ? `<p class="nota-alcance">ℹ ${escaparHtml(cap.nota_alcance)}</p>` : ""}
+    </section>
+
+    <nav class="capitulo-tabs">
+      <a href="#teoria" class="tab-link">Teoría</a>
+      <a href="#ejemplos" class="tab-link">Ejemplos</a>
+      <a href="#ejercicios" class="tab-link">Ejercicios</a>
+    </nav>
+
+    <section id="teoria" class="bloque">
+      <h2 class="bloque-titulo">Teoría</h2>
+      ${teoriaHtml}
+    </section>
+    <section id="ejemplos" class="bloque">
+      <h2 class="bloque-titulo">Ejemplos</h2>
+      ${ejemplosHtml}
+    </section>
+    <section id="ejercicios" class="bloque">
+      <h2 class="bloque-titulo">Ejercicios</h2>
+      <div class="ejercicios-lista">${ejerciciosHtml}</div>
+    </section>
+  `;
+
+  await refrescarProgresoTopbar();
+}
+
+function renderTablaTeoria(tabla) {
+  return `
+    <div class="tabla-scroll">
+    <table class="tabla-teoria">
+      <thead><tr>${tabla.columnas.map((c) => `<th>${escaparHtml(c)}</th>`).join("")}</tr></thead>
+      <tbody>
+        ${tabla.filas.map((f) => `<tr>${f.map((c) => `<td>${escaparHtml(c)}</td>`).join("")}</tr>`).join("")}
+      </tbody>
+    </table>
+    </div>`;
+}
+
+// -------------------------------------------------------------
+// Pantalla de ejercicio
+// -------------------------------------------------------------
+export async function renderExercise(app, areaSlug, numero, numeroEjercicio) {
+  app.innerHTML = `<p class="cargando">Cargando ejercicio…</p>`;
+  let cap;
+  try {
+    cap = await cargarCapitulo(areaSlug, numero);
+  } catch (e) {
+    app.innerHTML = `<p class="error-carga">${escaparHtml(e.message)}</p><a class="volver" href="#/area/${areaSlug}">← Índice</a>`;
+    return;
+  }
+  const ej = obtenerEjercicio(cap, numeroEjercicio);
+  if (!ej) {
+    app.innerHTML = `<p class="error-carga">Ejercicio no encontrado.</p><a class="volver" href="#/area/${areaSlug}/capitulo/${numero}">← Capítulo</a>`;
+    return;
+  }
+
+  const clave = claveCapitulo(areaSlug, numero);
+  const reactivosHtml = ej.items.map((item) => renderReactivo(clave, ej, item)).join("");
+
+  app.innerHTML = `
+    <a class="volver" href="#/area/${areaSlug}/capitulo/${numero}#ejercicios">← Capítulo ${cap.numero}</a>
+    <section class="ejercicio-header">
+      <span class="capitulo-header-area">${escaparHtml(cap.area)} · Capítulo ${cap.numero}</span>
+      <h1>Ejercicio ${ej.numero_ejercicio} · ${escaparHtml(ej.titulo)}</h1>
+      <p class="ejercicio-instrucciones">${escaparHtml(ej.instrucciones)}</p>
+      ${ej.pagina ? `<p class="ejercicio-pagina">Libro, página ${ej.pagina}</p>` : ""}
+    </section>
+    <section class="reactivos">${reactivosHtml}</section>
+  `;
+
+  ej.items.forEach((item) => conectarReactivo(app, clave, ej, item));
+  await refrescarProgresoTopbar();
+}
+
+function renderReactivo(clave, ej, item) {
+  const estado = store.obtenerEstadoItem(clave, ej.numero_ejercicio, item.item);
+  const chip = estado?.completado
+    ? `<span class="reactivo-estado-chip ${estado.revelada ? "revelado" : (estado.correcta ? "ok" : "fallo")}">
+         ${estado.revelada ? "👁 vista" : (estado.correcta ? "✔ correcto" : "intentado")}
+       </span>`
+    : "";
+
+  let controlHtml;
+  if (ej.tipo === "comparacion") {
+    controlHtml = `
+      <div class="opciones-comparacion" role="group">
+        ${["<", ">", "="].map((s) => `
+          <button type="button" class="opcion-simbolo ${estado?.respuesta === s ? "seleccionada" : ""}" data-valor="${s}">${s}</button>
+        `).join("")}
+      </div>`;
+  } else {
+    controlHtml = `
+      <div class="opcion-texto">
+        <input type="text" class="entrada-texto" placeholder="Escribe tu respuesta…" value="${estado?.respuesta ? escaparHtml(estado.respuesta) : ""}">
+      </div>`;
+  }
+
+  return `
+    <article class="reactivo cuaderno-card" data-item-numero="${item.item}">
+      <div class="cuaderno-card-margen"></div>
+      <div class="cuaderno-card-cuerpo">
+        <div class="reactivo-encabezado">
+          <span class="reactivo-numero">${item.item}</span>
+          <span class="reactivo-enunciado">${escaparHtml(item.enunciado)}</span>
+          ${chip}
+        </div>
+        ${controlHtml}
+        <div class="reactivo-acciones">
+          <button type="button" class="btn btn-primario btn-revisar">Revisar</button>
+          <button type="button" class="btn btn-secundario btn-mostrar">Mostrar respuesta</button>
+          <button type="button" class="btn btn-secundario btn-explicar">🤖 Explicar</button>
+        </div>
+        <div class="reactivo-feedback" aria-live="polite"></div>
+      </div>
+    </article>`;
+}
+
+function conectarReactivo(app, clave, ej, item) {
+  const nodo = app.querySelector(`.reactivo[data-item-numero="${item.item}"]`);
+  if (!nodo) return;
+  const feedback = nodo.querySelector(".reactivo-feedback");
+  const opciones = nodo.querySelectorAll(".opcion-simbolo");
+  const btnRevisar = nodo.querySelector(".btn-revisar");
+  const btnMostrar = nodo.querySelector(".btn-mostrar");
+  const btnExplicar = nodo.querySelector(".btn-explicar");
+
+  opciones.forEach((op) => {
+    op.addEventListener("click", () => {
+      opciones.forEach((o) => o.classList.remove("seleccionada"));
+      op.classList.add("seleccionada");
+    });
+  });
+
+  function obtenerRespuestaUsuario() {
+    if (ej.tipo === "comparacion") {
+      const sel = nodo.querySelector(".opcion-simbolo.seleccionada");
+      return sel ? sel.dataset.valor : "";
+    }
+    const input = nodo.querySelector(".entrada-texto");
+    return input ? input.value.trim() : "";
+  }
+
+  function cajaFeedback(tipo, sello, mensaje) {
+    return `<div class="feedback-caja ${tipo}"><span class="feedback-sello">${sello}</span><span>${mensaje}</span></div>`;
+  }
+
+  btnRevisar.addEventListener("click", () => {
+    const respuesta = obtenerRespuestaUsuario();
+    if (!respuesta) {
+      feedback.innerHTML = cajaFeedback("info", "✏", "Selecciona o escribe una respuesta antes de revisar.");
+      return;
+    }
+    const itemCompleto = { ...item, tipo: ej.tipo, tema: ej.tema };
+    const correcta = calificar(ej.tipo, respuesta, item.respuesta_oficial);
+    store.guardarRespuesta(clave, ej.numero_ejercicio, item.item, respuesta, correcta);
+
+    if (correcta) {
+      feedback.innerHTML = cajaFeedback("ok", "✔", "¡Correcto!");
+    } else {
+      const pista = generarPista(itemCompleto, ej.tema);
+      feedback.innerHTML = cajaFeedback("fallo", "✗", pista);
+    }
+    refrescarProgresoTopbar();
+  });
+
+  btnMostrar.addEventListener("click", () => {
+    store.marcarRevelada(clave, ej.numero_ejercicio, item.item);
+    feedback.innerHTML = cajaFeedback("info", "📖", `Respuesta oficial del libro: <strong>${escaparHtml(item.respuesta_oficial)}</strong>`);
+    refrescarProgresoTopbar();
+  });
+
+  btnExplicar.addEventListener("click", () => {
+    const itemCompleto = { ...item, tipo: ej.tipo, tema: ej.tema, respuestaOficial: item.respuesta_oficial };
+    const pasos = generarExplicacion(itemCompleto);
+    const div = document.createElement("div");
+    div.className = "explicacion-lista";
+    const ol = document.createElement("ol");
+    pasos.forEach((p) => {
+      const li = document.createElement("li");
+      li.textContent = p;
+      ol.appendChild(li);
+    });
+    div.appendChild(ol);
+    feedback.appendChild(div);
+  });
+}

@@ -1,0 +1,77 @@
+[
+  {
+    "area": "Aritmética",
+    "slug": "aritmetica",
+    "icono": "🔢",
+    "descripcion": "Números reales, operaciones, fracciones y sus propiedades.",
+    "disponible": true,
+    "capitulos": [
+      {
+        "numero": 1,
+        "titulo": "Números reales",
+        "slug": "capitulo-1",
+        "archivo": "capitulo1.json",
+        "paginaInicio": 4,
+        "paginaFin": 13,
+        "totalReactivos": 81,
+        "disponible": true
+      },
+      { "numero": 2, "titulo": "Próximamente", "slug": "capitulo-2", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 3, "titulo": "Próximamente", "slug": "capitulo-3", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 4, "titulo": "Próximamente", "slug": "capitulo-4", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 5, "titulo": "Próximamente", "slug": "capitulo-5", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 6, "titulo": "Próximamente", "slug": "capitulo-6", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 7, "titulo": "Próximamente", "slug": "capitulo-7", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 8, "titulo": "Próximamente", "slug": "capitulo-8", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 9, "titulo": "Próximamente", "slug": "capitulo-9", "archivo": null, "totalReactivos": 0, "disponible": false }
+    ]
+  },
+  {
+    "area": "Álgebra",
+    "slug": "algebra",
+    "icono": "➕",
+    "descripcion": "Expresiones algebraicas, ecuaciones y funciones.",
+    "disponible": false,
+    "capitulos": []
+  },
+  {
+    "area": "Geometría",
+    "slug": "geometria",
+    "icono": "📐",
+    "descripcion": "Figuras planas, cuerpos geométricos y sus propiedades.",
+    "disponible": false,
+    "capitulos": []
+  },
+  {
+    "area": "Trigonometría",
+    "slug": "trigonometria",
+    "icono": "📐",
+    "descripcion": "Razones trigonométricas y resolución de triángulos.",
+    "disponible": false,
+    "capitulos": []
+  },
+  {
+    "area": "Geometría Analítica",
+    "slug": "geometria-analitica",
+    "icono": "📊",
+    "descripcion": "Lugares geométricos en el plano cartesiano.",
+    "disponible": false,
+    "capitulos": []
+  },
+  {
+    "area": "Cálculo Diferencial",
+    "slug": "calculo-diferencial",
+    "icono": "∂",
+    "descripcion": "Límites, derivadas y sus aplicaciones.",
+    "disponible": false,
+    "capitulos": []
+  },
+  {
+    "area": "Cálculo Integral",
+    "slug": "calculo-integral",
+    "icono": "∫",
+    "descripcion": "Integrales, métodos de integración y aplicaciones.",
+    "disponible": false,
+    "capitulos": []
+  }
+]
