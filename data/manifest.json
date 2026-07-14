@@ -2,7 +2,7 @@
   {
     "area": "Aritmética",
     "slug": "aritmetica",
-    "icono": "🔢",
+    "icono": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em;vertical-align:-0.125em' aria-hidden='true'><line x1='4' y1='9' x2='20' y2='9'/><line x1='4' y1='15' x2='20' y2='15'/><line x1='10' y1='3' x2='8' y2='21'/><line x1='16' y1='3' x2='14' y2='21'/></svg>",
     "descripcion": "Números reales, operaciones, fracciones y sus propiedades.",
     "disponible": true,
     "capitulos": [
@@ -29,7 +29,7 @@
   {
     "area": "Álgebra",
     "slug": "algebra",
-    "icono": "➕",
+    "icono": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em;vertical-align:-0.125em' aria-hidden='true'><line x1='12' y1='3' x2='12' y2='11'/><line x1='8' y1='7' x2='16' y2='7'/><line x1='6' y1='17' x2='18' y2='17'/></svg>",
     "descripcion": "Expresiones algebraicas, ecuaciones y funciones.",
     "disponible": false,
     "capitulos": []
@@ -37,7 +37,7 @@
   {
     "area": "Geometría",
     "slug": "geometria",
-    "icono": "📐",
+    "icono": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em;vertical-align:-0.125em' aria-hidden='true'><path d='M12 4 L21 20 L3 20 Z'/></svg>",
     "descripcion": "Figuras planas, cuerpos geométricos y sus propiedades.",
     "disponible": false,
     "capitulos": []
@@ -45,7 +45,7 @@
   {
     "area": "Trigonometría",
     "slug": "trigonometria",
-    "icono": "📐",
+    "icono": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em;vertical-align:-0.125em' aria-hidden='true'><circle cx='12' cy='12' r='9'/><line x1='12' y1='12' x2='19' y2='12'/><line x1='12' y1='12' x2='12' y2='5'/></svg>",
     "descripcion": "Razones trigonométricas y resolución de triángulos.",
     "disponible": false,
     "capitulos": []
@@ -53,7 +53,7 @@
   {
     "area": "Geometría Analítica",
     "slug": "geometria-analitica",
-    "icono": "📊",
+    "icono": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em;vertical-align:-0.125em' aria-hidden='true'><line x1='4' y1='20' x2='4' y2='4'/><line x1='4' y1='20' x2='20' y2='20'/><circle cx='14' cy='9' r='1.6' fill='currentColor' stroke='none'/></svg>",
     "descripcion": "Lugares geométricos en el plano cartesiano.",
     "disponible": false,
     "capitulos": []
