@@ -18,7 +18,7 @@
 //   5. Cambia SYNC_HABILITADO a true.
 // =============================================================
 
-export const SYNC_HABILITADO = false;
+export const SYNC_HABILITADO = true;
 
-export const SUPABASE_URL = "";
-export const SUPABASE_ANON_KEY = "";
+export const SUPABASE_URL = "https://wqjxdbibeeczbjxoolue.supabase.co";
+export const SUPABASE_ANON_KEY = "sb_publishable_fVMn3WQq3yU_QlZMrHMVrg_lTFFyaU3";
