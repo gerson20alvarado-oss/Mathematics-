@@ -260,6 +260,8 @@ p { margin: 0 0 .9em; color: var(--ink); }
 [data-tema="oscuro"] .opcion-simbolo.seleccionada { color: #14231B; }
 
 .opcion-texto { margin-bottom: 16px; }
+.opcion-texto-doble { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; max-width: 420px; }
+.campo-doble-label { font-family: var(--font-mono); font-size: .75rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .05em; }
 .entrada-texto {
   width: 100%; max-width: 420px; padding: 11px 14px; border-radius: 10px;
   border: 1.5px solid var(--borde); background: var(--surface); color: var(--ink);

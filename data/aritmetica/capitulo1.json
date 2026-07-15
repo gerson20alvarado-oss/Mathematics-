@@ -111,6 +111,96 @@
   ],
   "ejercicios": [
     {
+      "numero_ejercicio": 1,
+      "titulo": "Propiedades de los números reales",
+      "instrucciones": "Identifica y escribe el nombre de la propiedad a la que se hace referencia.",
+      "tipo": "texto",
+      "pagina": 5,
+      "tema": "Propiedades",
+      "items": [
+        {
+          "item": 1,
+          "enunciado": "$3 + (-3) = 0$",
+          "respuesta_oficial": "Inverso aditivo"
+        },
+        {
+          "item": 2,
+          "enunciado": "$\\left(\\dfrac{1}{3}\\right)(4) = (4)\\left(\\dfrac{1}{3}\\right)$",
+          "respuesta_oficial": "Conmutativa para la multiplicación"
+        },
+        {
+          "item": 3,
+          "enunciado": "$(8)(-3) = -24 \\in \\mathbb{R}$",
+          "respuesta_oficial": "Cerradura para la multiplicación"
+        },
+        {
+          "item": 4,
+          "enunciado": "$7\\left[\\left(\\dfrac{1}{3}\\right)(4)\\right] = \\left[7\\left(\\dfrac{1}{3}\\right)\\right](4)$",
+          "respuesta_oficial": "Asociativa para la multiplicación"
+        },
+        {
+          "item": 5,
+          "enunciado": "$-\\dfrac{3}{4} + 0 = -\\dfrac{3}{4}$",
+          "respuesta_oficial": "Neutro aditivo"
+        },
+        {
+          "item": 6,
+          "enunciado": "$4(-3+5) = 4(-3)+4(5)$",
+          "respuesta_oficial": "Distributiva"
+        },
+        {
+          "item": 7,
+          "enunciado": "$\\dfrac{1}{7} + \\left(-\\dfrac{1}{7}\\right) = 0$",
+          "respuesta_oficial": "Inverso aditivo"
+        },
+        {
+          "item": 8,
+          "enunciado": "$(-3)+(-8) = -11 \\in \\mathbb{R}$",
+          "respuesta_oficial": "Cerradura para la suma"
+        },
+        {
+          "item": 9,
+          "enunciado": "$-\\dfrac{2}{4} + \\dfrac{5}{9} = \\dfrac{5}{9} + \\left(-\\dfrac{2}{4}\\right)$",
+          "respuesta_oficial": "Conmutativa para la suma"
+        },
+        {
+          "item": 10,
+          "enunciado": "$(3+2)+(-7) = 3+\\left[2+(-7)\\right]$",
+          "respuesta_oficial": "Asociativa para la suma"
+        },
+        {
+          "item": 11,
+          "enunciado": "$2\\cdot 3 + 2\\cdot 7 = 2(3+7)$",
+          "respuesta_oficial": "Distributiva"
+        },
+        {
+          "item": 12,
+          "enunciado": "$(-8)\\cdot 1 = -8$",
+          "respuesta_oficial": "Neutro multiplicativo"
+        },
+        {
+          "item": 13,
+          "enunciado": "$\\left(\\dfrac{1}{4}\\right)(4) = 1$",
+          "respuesta_oficial": "Inverso multiplicativo"
+        },
+        {
+          "item": 14,
+          "enunciado": "$-2 + \\dfrac{1}{6} = \\dfrac{1}{6} + (-2)$",
+          "respuesta_oficial": "Conmutativa para la suma"
+        },
+        {
+          "item": 15,
+          "enunciado": "$(8)(4) = (4)(8)$",
+          "respuesta_oficial": "Conmutativa para la multiplicación"
+        },
+        {
+          "item": 16,
+          "enunciado": "$5\\cdot(3\\cdot 6) = (5\\cdot 3)\\cdot 6$",
+          "respuesta_oficial": "Asociativa para la multiplicación"
+        }
+      ]
+    },
+    {
       "numero_ejercicio": 2,
       "titulo": "Escritura de números con letra",
       "instrucciones": "Escribe con letras las siguientes cifras.",
@@ -491,6 +581,112 @@
       "tema": "Valor absoluto de un número"
     },
     {
+      "numero_ejercicio": 7,
+      "titulo": "Valor absoluto y relativo",
+      "instrucciones": "Determina cuál es el valor absoluto y relativo del dígito indicado (en negritas) en los siguientes números.",
+      "tipo": "valor_posicional_doble",
+      "pagina": 12,
+      "tema": "Valor absoluto y relativo del sistema posicional decimal",
+      "items": [
+        {
+          "item": 1,
+          "enunciado": "$1\\mathbf{3}$",
+          "respuesta_oficial": {
+            "absoluto": "3",
+            "relativo": "3"
+          }
+        },
+        {
+          "item": 2,
+          "enunciado": "$\\mathbf{8}9$",
+          "respuesta_oficial": {
+            "absoluto": "8",
+            "relativo": "80"
+          }
+        },
+        {
+          "item": 3,
+          "enunciado": "$\\mathbf{3}72$",
+          "respuesta_oficial": {
+            "absoluto": "3",
+            "relativo": "300"
+          }
+        },
+        {
+          "item": 4,
+          "enunciado": "$1\\,\\mathbf{5}24$",
+          "respuesta_oficial": {
+            "absoluto": "5",
+            "relativo": "500"
+          }
+        },
+        {
+          "item": 5,
+          "enunciado": "$\\mathbf{7}\\,893$",
+          "respuesta_oficial": {
+            "absoluto": "7",
+            "relativo": "7 000"
+          }
+        },
+        {
+          "item": 6,
+          "enunciado": "$1\\mathbf{5}\\,278$",
+          "respuesta_oficial": {
+            "absoluto": "5",
+            "relativo": "5 000"
+          }
+        },
+        {
+          "item": 7,
+          "enunciado": "$\\mathbf{4}2\\,939$",
+          "respuesta_oficial": {
+            "absoluto": "4",
+            "relativo": "40 000"
+          }
+        },
+        {
+          "item": 8,
+          "enunciado": "$153\\,\\mathbf{9}75$",
+          "respuesta_oficial": {
+            "absoluto": "9",
+            "relativo": "900"
+          }
+        },
+        {
+          "item": 9,
+          "enunciado": "$794\\,5\\mathbf{6}8$",
+          "respuesta_oficial": {
+            "absoluto": "6",
+            "relativo": "60"
+          }
+        },
+        {
+          "item": 10,
+          "enunciado": "$1\\,5\\mathbf{0}2\\,734$",
+          "respuesta_oficial": {
+            "absoluto": "0",
+            "relativo": "0"
+          }
+        },
+        {
+          "item": 11,
+          "enunciado": "$1\\mathbf{2}\\,364\\,568$",
+          "respuesta_oficial": {
+            "absoluto": "2",
+            "relativo": "2 000 000"
+          }
+        },
+        {
+          "item": 12,
+          "enunciado": "$1\\mathbf{5}7\\,103\\,000$",
+          "respuesta_oficial": {
+            "absoluto": "5",
+            "relativo": "50 000 000"
+          }
+        }
+      ]
+    },
+    {
       "numero_ejercicio": 8,
       "titulo": "Forma desarrollada",
       "instrucciones": "Expresa en forma desarrollada los siguientes números.",
@@ -576,5 +772,5 @@
       "tema": "Valor absoluto y relativo del sistema posicional decimal"
     }
   ],
-  "nota_alcance": "Los ejercicios 1 y 7 de este capítulo contienen notación matemática (fracciones apiladas y dígitos resaltados dentro de números) que el PDF no permite extraer con fidelidad como texto plano. Se omiten en esta fase para no arriesgar errores en las respuestas oficiales; se incorporarán en una fase de refinamiento usando recorte de imagen del libro."
+  "nota_alcance": null
 }

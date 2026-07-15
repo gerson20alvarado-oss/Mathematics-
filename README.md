@@ -21,6 +21,42 @@ Inicio  →  Área (Aritmética, Álgebra, …)  →  Capítulo  →  Ejercicio
 
 ---
 
+## Regla permanente: fidelidad matemática al 100 %
+
+**Ningún ejercicio del libro se omite por contener notación matemática especial.**
+Fracciones, raíces, exponentes, sumatorias, integrales, notación algebraica, etc.
+se representan con **KaTeX** (auto-hospedado en `vendor/katex/`, sin depender de
+ningún CDN), no con imágenes recortadas del libro. El contenido matemático sigue
+siendo texto real: seleccionable, accesible y con el mismo estilo claro/oscuro
+del resto de la aplicación.
+
+Prioridad de representación, en este orden:
+1. Texto HTML normal, cuando sea suficiente (ej. `8/4`, `−372`).
+2. **KaTeX** para cualquier expresión matemática (fracciones apiladas, raíces,
+   exponentes, notación de conjuntos, etc.) — delimitada con `$…$` dentro del
+   campo `enunciado` del JSON; se renderiza automáticamente al pintar la
+   página (`renderizarMate()` en `app-shared.js`, llamada desde `views.js`).
+3. SVG únicamente cuando KaTeX no pueda representar algún elemento específico.
+4. Imagen recortada del libro sólo como último recurso, y nunca sin antes
+   preguntar.
+
+Si el PDF extrae mal una expresión (columnas mezcladas, símbolos perdidos), se
+reconstruye visualmente contra la página del libro y/o se verifica contra la
+respuesta oficial antes de publicarla — nunca se descarta un ejercicio sólo
+porque la extracción automática de texto haya fallado.
+
+**Ejemplo aplicado:** el Capítulo 1 originalmente omitía los ejercicios 1 y 7
+por tener fracciones apiladas y dígitos resaltados dentro de un número. Ambos
+ya están completos: el Ejercicio 1 usa KaTeX para las 16 expresiones con
+propiedades de los números reales, y el Ejercicio 7 usa KaTeX para resaltar en
+negritas el dígito indicado en cada número, con un nuevo tipo de reactivo
+(`valor_posicional_doble`) que pide valor absoluto y valor relativo por
+separado, tal como la tabla del libro.
+
+Esta regla aplica a todos los capítulos, actuales y futuros.
+
+---
+
 ## Probarlo en tu computadora
 
 Los navegadores bloquean `fetch()` sobre archivos abiertos directamente
@@ -72,6 +108,8 @@ mathsimplificadas-static/
 │   ├── calculo-diferencial/      # (vacío por ahora)
 │   └── calculo-integral/         # (vacío por ahora)
 ├── assets/                # (iconos/recursos futuros)
+├── vendor/
+│   └── katex/              # KaTeX auto-hospedado (CSS, JS, fuentes, auto-render)
 └── README.md
 ```
 
@@ -143,13 +181,14 @@ mathsimplificadas-static/
 
 ## Alcance de datos de esta fase
 
-De Aritmética → Capítulo 1 se incluyen los ejercicios 2, 3, 4, 5, 6 y 8
-(escritura de números, comparación de enteros/decimales, comparación de
-fracciones, valor absoluto y forma desarrollada) — 81 reactivos con
-respuesta oficial verificada uno por uno contra la sección de soluciones
-del libro (pág. 1442). Los ejercicios 1 y 7 quedan pendientes por su
-notación apilada (fracciones dentro de igualdades, dígitos resaltados),
-documentado como nota dentro del propio capítulo en la app.
+De Aritmética → Capítulo 1 se incluyen **los 8 ejercicios completos del
+capítulo (1 al 8), sin omitir ninguno** — 109 reactivos con respuesta
+oficial verificada uno por uno contra la sección de soluciones del libro
+(pág. 1442). Los ejercicios 1 (propiedades de los números reales) y 7
+(valor absoluto y relativo con dígito indicado) usan KaTeX para la
+notación con fracciones apiladas y dígitos resaltados, reconstruida y
+verificada contra la clave de respuestas oficial (ver "Regla permanente:
+fidelidad matemática al 100 %" más arriba).
 
 Las otras 6 áreas están presentes en la navegación (tal como se pidió)
 pero sin capítulos cargados todavía — se muestran como "Próximamente" sin

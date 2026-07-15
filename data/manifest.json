@@ -13,7 +13,7 @@
         "archivo": "capitulo1.json",
         "paginaInicio": 4,
         "paginaFin": 13,
-        "totalReactivos": 81,
+        "totalReactivos": 109,
         "disponible": true
       },
       { "numero": 2, "titulo": "Próximamente", "slug": "capitulo-2", "archivo": null, "totalReactivos": 0, "disponible": false },

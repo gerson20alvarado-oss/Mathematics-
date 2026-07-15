@@ -7,6 +7,16 @@
 import { normalizar, normalizarLaxo, parseValor, compararFracciones, separarEnunciado } from "./utils.js";
 
 export function calificar(tipo, respuestaUsuario, respuestaOficial) {
+  if (tipo === "valor_posicional_doble") {
+    if (!respuestaUsuario || typeof respuestaUsuario !== "object") return false;
+    const { absoluto, relativo } = respuestaUsuario;
+    if (!absoluto || !absoluto.trim() || !relativo || !relativo.trim()) return false;
+    const okAbsoluto = normalizar(absoluto) === normalizar(respuestaOficial.absoluto) ||
+      normalizarLaxo(absoluto) === normalizarLaxo(respuestaOficial.absoluto);
+    const okRelativo = normalizar(relativo) === normalizar(respuestaOficial.relativo) ||
+      normalizarLaxo(relativo) === normalizarLaxo(respuestaOficial.relativo);
+    return okAbsoluto && okRelativo;
+  }
   if (!respuestaUsuario || respuestaUsuario.trim() === "") return false;
   if (tipo === "comparacion") {
     return respuestaUsuario.trim() === respuestaOficial.trim();
@@ -17,6 +27,13 @@ export function calificar(tipo, respuestaUsuario, respuestaOficial) {
 
 export function generarPista(item, temaTeoria) {
   const { tipo, enunciado } = item;
+
+  if (tipo === "valor_posicional_doble") {
+    return "Pista: el valor absoluto del dígito indicado es el número que representa por sí solo (sin importar su " +
+      "posición). El valor relativo se obtiene multiplicando ese valor absoluto por el valor de la posición que " +
+      "ocupa en el número (unidades = 1, decenas = 10, centenas = 100, millares = 1 000, …), tal como en el " +
+      "ejemplo 72 435 = 70 000 + 2 000 + 400 + 30 + 5.";
+  }
 
   if (tipo === "comparacion") {
     const esFraccion = enunciado.includes("/");
@@ -53,6 +70,35 @@ export function generarPista(item, temaTeoria) {
       "'Lectura y escritura'.";
   }
   return "Pista: revisa la teoría de esta sección antes de intentar de nuevo.";
+}
+
+const NOMBRES_POSICION = {
+  1: "unidades", 10: "decenas", 100: "centenas", 1000: "millares",
+  10000: "decenas de millar", 100000: "centenas de millar", 1000000: "millones",
+  10000000: "decenas de millón", 100000000: "centenas de millón",
+};
+
+function explicarValorPosicionalDigito(item) {
+  const oficial = item.respuestaOficial || item.respuesta_oficial;
+  const abs = Number(String(oficial.absoluto).replace(/\s/g, ""));
+  const rel = Number(String(oficial.relativo).replace(/\s/g, ""));
+  const pasos = [
+    "El valor absoluto de un dígito es el número que representa, sin importar la posición que ocupe.",
+    "El valor relativo depende de la posición que ocupa dentro del número: se multiplica el valor absoluto del " +
+      "dígito por el valor de esa posición (unidades, decenas, centenas, millares, …), tal como en el ejemplo del " +
+      "número 4 342 de la teoría del capítulo.",
+  ];
+  if (abs === 0) {
+    pasos.push("En este caso el dígito indicado es 0: su valor absoluto es 0 y, sin importar la posición que " +
+      "ocupe, su valor relativo también es 0.");
+  } else {
+    const factor = Math.round(rel / abs);
+    const nombre = NOMBRES_POSICION[factor] || `posición con valor ${factor}`;
+    pasos.push(`El dígito indicado ocupa la posición de las ${nombre}, por lo que su valor relativo es ` +
+      `${oficial.absoluto} × ${factor} = ${oficial.relativo}.`);
+  }
+  pasos.push(`Respuesta oficial del libro — valor absoluto: ${oficial.absoluto} · valor relativo: ${oficial.relativo}`);
+  return pasos;
 }
 
 function explicarComparacion(enunciado, respuestaOficial) {
@@ -153,6 +199,7 @@ function explicarLecturaEscritura(enunciado, respuestaOficial) {
 
 export function generarExplicacion(item) {
   const { tipo, tema, enunciado, respuestaOficial } = item;
+  if (tipo === "valor_posicional_doble") return explicarValorPosicionalDigito(item);
   if (tipo === "comparacion") return explicarComparacion(enunciado, respuestaOficial);
   if (tema === "Valor absoluto de un número") return explicarValorAbsoluto(enunciado, respuestaOficial);
   if (tema === "Valor absoluto y relativo del sistema posicional decimal")

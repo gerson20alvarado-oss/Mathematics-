@@ -8,7 +8,7 @@
 import { cargarManifiesto, obtenerArea, cargarCapitulo, obtenerEjercicio, aplanarCapitulos, claveCapitulo } from "./data.js";
 import * as store from "./store.js";
 import { calificar, generarPista, generarExplicacion } from "./grading.js";
-import { actualizarProgresoTopbar } from "./app-shared.js";
+import { actualizarProgresoTopbar, renderizarMate } from "./app-shared.js";
 
 function escaparHtml(s) {
   const div = document.createElement("div");
@@ -245,6 +245,7 @@ export async function renderChapter(app, areaSlug, numero) {
   `;
 
   await refrescarProgresoTopbar();
+  renderizarMate(app);
 }
 
 function renderTablaTeoria(tabla) {
@@ -293,13 +294,14 @@ export async function renderExercise(app, areaSlug, numero, numeroEjercicio) {
 
   ej.items.forEach((item) => conectarReactivo(app, clave, ej, item));
   await refrescarProgresoTopbar();
+  renderizarMate(app);
 }
 
 function renderReactivo(clave, ej, item) {
   const estado = store.obtenerEstadoItem(clave, ej.numero_ejercicio, item.item);
   const chip = estado?.completado
     ? `<span class="reactivo-estado-chip ${estado.revelada ? "revelado" : (estado.correcta ? "ok" : "fallo")}">
-         ${estado.revelada ? "👁 vista" : (estado.correcta ? "✔ correcto" : "intentado")}
+         ${estado.revelada ? "vista" : (estado.correcta ? "correcto" : "intentado")}
        </span>`
     : "";
 
@@ -310,6 +312,16 @@ function renderReactivo(clave, ej, item) {
         ${["<", ">", "="].map((s) => `
           <button type="button" class="opcion-simbolo ${estado?.respuesta === s ? "seleccionada" : ""}" data-valor="${s}">${s}</button>
         `).join("")}
+      </div>`;
+  } else if (ej.tipo === "valor_posicional_doble") {
+    const va = estado?.respuesta?.absoluto ? escaparHtml(estado.respuesta.absoluto) : "";
+    const vr = estado?.respuesta?.relativo ? escaparHtml(estado.respuesta.relativo) : "";
+    controlHtml = `
+      <div class="opcion-texto-doble">
+        <label class="campo-doble-label" for="va-${item.item}">Valor absoluto</label>
+        <input id="va-${item.item}" type="text" class="entrada-texto entrada-absoluto" placeholder="Valor absoluto…" value="${va}">
+        <label class="campo-doble-label" for="vr-${item.item}">Valor relativo</label>
+        <input id="vr-${item.item}" type="text" class="entrada-texto entrada-relativo" placeholder="Valor relativo…" value="${vr}">
       </div>`;
   } else {
     controlHtml = `
@@ -331,7 +343,7 @@ function renderReactivo(clave, ej, item) {
         <div class="reactivo-acciones">
           <button type="button" class="btn btn-primario btn-revisar">Revisar</button>
           <button type="button" class="btn btn-secundario btn-mostrar">Mostrar respuesta</button>
-          <button type="button" class="btn btn-secundario btn-explicar">🤖 Explicar</button>
+          <button type="button" class="btn btn-secundario btn-explicar">Explicar</button>
         </div>
         <div class="reactivo-feedback" aria-live="polite"></div>
       </div>
@@ -359,8 +371,20 @@ function conectarReactivo(app, clave, ej, item) {
       const sel = nodo.querySelector(".opcion-simbolo.seleccionada");
       return sel ? sel.dataset.valor : "";
     }
+    if (ej.tipo === "valor_posicional_doble") {
+      const va = nodo.querySelector(".entrada-absoluto");
+      const vr = nodo.querySelector(".entrada-relativo");
+      return { absoluto: va ? va.value.trim() : "", relativo: vr ? vr.value.trim() : "" };
+    }
     const input = nodo.querySelector(".entrada-texto");
     return input ? input.value.trim() : "";
+  }
+
+  function respuestaEstaVacia(respuesta) {
+    if (ej.tipo === "valor_posicional_doble") {
+      return !respuesta || !respuesta.absoluto || !respuesta.relativo;
+    }
+    return !respuesta;
   }
 
   function cajaFeedback(tipo, sello, mensaje) {
@@ -369,8 +393,8 @@ function conectarReactivo(app, clave, ej, item) {
 
   btnRevisar.addEventListener("click", () => {
     const respuesta = obtenerRespuestaUsuario();
-    if (!respuesta) {
-      feedback.innerHTML = cajaFeedback("info", "✏", "Selecciona o escribe una respuesta antes de revisar.");
+    if (respuestaEstaVacia(respuesta)) {
+      feedback.innerHTML = cajaFeedback("info", `<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em' aria-hidden='true'><path d='M12 20h9'/><path d='M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z'/></svg>`, "Selecciona o escribe una respuesta antes de revisar.");
       return;
     }
     const itemCompleto = { ...item, tipo: ej.tipo, tema: ej.tema };
@@ -378,17 +402,20 @@ function conectarReactivo(app, clave, ej, item) {
     store.guardarRespuesta(clave, ej.numero_ejercicio, item.item, respuesta, correcta);
 
     if (correcta) {
-      feedback.innerHTML = cajaFeedback("ok", "✔", "¡Correcto!");
+      feedback.innerHTML = cajaFeedback("ok", `<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em' aria-hidden='true'><polyline points='20 6 9 17 4 12'/></svg>`, "¡Correcto!");
     } else {
       const pista = generarPista(itemCompleto, ej.tema);
-      feedback.innerHTML = cajaFeedback("fallo", "✗", pista);
+      feedback.innerHTML = cajaFeedback("fallo", `<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em' aria-hidden='true'><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg>`, pista);
     }
     refrescarProgresoTopbar();
   });
 
   btnMostrar.addEventListener("click", () => {
     store.marcarRevelada(clave, ej.numero_ejercicio, item.item);
-    feedback.innerHTML = cajaFeedback("info", "📖", `Respuesta oficial del libro: <strong>${escaparHtml(item.respuesta_oficial)}</strong>`);
+    const textoRespuesta = (ej.tipo === "valor_posicional_doble")
+      ? `Valor absoluto: <strong>${escaparHtml(item.respuesta_oficial.absoluto)}</strong> · Valor relativo: <strong>${escaparHtml(item.respuesta_oficial.relativo)}</strong>`
+      : `Respuesta oficial del libro: <strong>${escaparHtml(item.respuesta_oficial)}</strong>`;
+    feedback.innerHTML = cajaFeedback("info", `<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em' aria-hidden='true'><path d='M6 3h9l5 5v13H6Z'/><path d='M15 3v5h5'/><line x1='9' y1='13' x2='15' y2='13'/><line x1='9' y1='17' x2='15' y2='17'/></svg>`, textoRespuesta);
     refrescarProgresoTopbar();
   });
 
