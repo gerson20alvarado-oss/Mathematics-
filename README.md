@@ -57,6 +57,53 @@ Esta regla aplica a todos los capítulos, actuales y futuros.
 
 ---
 
+## Arquitectura congelada (a partir de esta versión)
+
+Esta versión es la **base oficial** del proyecto. Los capítulos futuros se
+construyen *reutilizando* esta arquitectura, no rediseñándola. Estos
+componentes están congelados y **no se modifican sin aprobación explícita
+previa**, con una explicación del motivo antes de tocarlos:
+
+- Estructura de datos (`manifest.json` anidado por áreas, `capituloN.json`
+  por capítulo, forma de los objetos `teoria`/`ejemplos`/`ejercicios`).
+- Router y jerarquía de navegación (`Inicio → Área → Capítulo → Ejercicio`).
+- Diseño visual y CSS (`css/style.css`).
+- Organización por áreas (Aritmética, Álgebra, Geometría y Trigonometría,
+  Geometría Analítica, Cálculo Diferencial, Cálculo Integral).
+- Flujo intercalado tema → ejemplos → ejercicios dentro de cada capítulo.
+- Sistema de progreso y su esquema en `localStorage` (ver abajo).
+- Integración de KaTeX (`vendor/katex/`, `renderizarMate()`).
+- Los tipos de reactivo existentes (`comparacion`, `texto`,
+  `valor_posicional_doble`).
+
+### Contrato de compatibilidad del progreso
+
+El progreso del usuario es prioridad absoluta y **nunca se pierde entre
+actualizaciones**:
+
+- Todo el progreso vive bajo una única llave versionada de `localStorage`:
+  `ms:progreso:v1` (ver `js/store.js`), indexada como
+  `areaSlug-capitulo-numero → numero_ejercicio → item_numero`.
+- Agregar áreas, capítulos, temas o ejercicios nuevos es **siempre aditivo**:
+  sólo se agregan entradas a `manifest.json` y nuevos `capituloN.json`. El
+  código nunca borra ni reescribe la llave de progreso al cargar.
+- Las búsquedas de área y capítulo son por **identificador** (`slug`,
+  `numero`), no por posición en el arreglo — se pueden agregar capítulos en
+  cualquier lugar del manifiesto sin afectar el progreso existente.
+- Por lo mismo, **una vez publicados, el `slug` de un área y el `numero` de
+  un capítulo o ejercicio no cambian nunca**; son el identificador estable
+  que ata el progreso guardado a su contenido.
+- Si en el futuro fuera indispensable cambiar la forma de los datos
+  guardados, se hace mediante una migración explícita (`ms:progreso:v1` →
+  `v2`) que lee el formato viejo y lo convierte, nunca borrando el original
+  hasta confirmar que la migración fue exitosa.
+- Antes de publicar cualquier cambio relacionado con el sistema de
+  progreso, se evalúa primero si existe riesgo de pérdida de datos; si lo
+  hay, se detiene la implementación y se explica el riesgo antes de
+  continuar.
+
+---
+
 ## Probarlo en tu computadora
 
 Los navegadores bloquean `fetch()` sobre archivos abiertos directamente

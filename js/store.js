@@ -11,6 +11,7 @@
 
 const CLAVE = "ms:progreso:v1";
 const CLAVE_TEMA = "ms:tema";
+const EVENTO_CAMBIO = "ms:progreso-cambio";
 
 function leerTodo() {
   try {
@@ -28,6 +29,23 @@ function guardarTodo(datos) {
   } catch (e) {
     console.warn("No se pudo guardar el progreso (¿LocalStorage lleno o deshabilitado?):", e);
   }
+  // Notifica que el progreso cambió. Si nadie está escuchando (uso normal,
+  // sin sincronización activa), esto no tiene ningún efecto ni costo real.
+  try {
+    window.dispatchEvent(new CustomEvent(EVENTO_CAMBIO));
+  } catch (e) {
+    // entorno sin `window`/eventos — no debería ocurrir en el navegador
+  }
+}
+
+/** Se suscribe a cada cambio de progreso local (guardar respuesta, revelar).
+ *  Usado únicamente por la capa de sincronización opcional (js/sync.js);
+ *  el resto de la aplicación no necesita ni debe usar esto. Devuelve una
+ *  función para cancelar la suscripción. */
+export function alCambiarProgreso(callback) {
+  const manejador = () => callback();
+  window.addEventListener(EVENTO_CAMBIO, manejador);
+  return () => window.removeEventListener(EVENTO_CAMBIO, manejador);
 }
 
 export function obtenerEstadoItem(capituloSlug, numeroEjercicio, itemNumero) {
@@ -107,6 +125,30 @@ export function progresoLibro(capitulosPlanos) {
  *  área (con claveProgreso ya calculada). */
 export function progresoArea(capitulosDeArea) {
   return progresoConjunto(capitulosDeArea);
+}
+
+// ---------------- Uso exclusivo de la capa de sincronización (js/sync.js) ----------------
+// El resto de la aplicación nunca debe llamar a estas dos funciones: son la
+// única puerta por la que Supabase puede leer o escribir progreso, y viven
+// aquí para que el formato guardado en LocalStorage siga siendo una única
+// fuente de verdad (nunca duplicado en otro archivo).
+
+/** Devuelve el árbol completo de progreso tal como está guardado. */
+export function obtenerTodoElProgreso() {
+  return leerTodo();
+}
+
+/** Reemplaza el árbol completo de progreso (resultado de fusionar local +
+ *  remoto en sync.js) SIN disparar el evento de cambio — evita que la
+ *  propia sincronización se dispare a sí misma en bucle. El progreso local
+ *  nunca se pierde con esto: sync.js sólo llama a esta función con el
+ *  resultado de una fusión (nunca con un simple reemplazo remoto). */
+export function reconciliarDesdeSync(datosFusionados) {
+  try {
+    localStorage.setItem(CLAVE, JSON.stringify(datosFusionados));
+  } catch (e) {
+    console.warn("No se pudo guardar el progreso fusionado:", e);
+  }
 }
 
 // ---------------- Tema (claro/oscuro) ----------------
