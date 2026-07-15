@@ -8,7 +8,10 @@
 //
 // Para configurar tu propio proyecto de Supabase:
 //   1. Crea un proyecto en https://supabase.com
-//   2. Ejecuta sql/schema.sql en el editor SQL de tu proyecto
+//   2. Ejecuta sql/schema.sql y luego sql/autorizacion.sql en el editor
+//      SQL de tu proyecto (el segundo agrega la tabla de usuarios y
+//      aprobación de cuentas; el primer usuario que inicia sesión queda
+//      como administrador automáticamente — ver README).
 //   3. Habilita el proveedor "GitHub" en Authentication → Providers
 //      (necesitas registrar una OAuth App en GitHub y pegar aquí la
 //      Client ID / Secret que te pida Supabase)

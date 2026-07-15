@@ -83,8 +83,16 @@ previa**, con una explicación del motivo antes de tocarlos:
   una pantalla dedicada pidiendo conexión. `js/store.js` quedó reducido
   únicamente a preferencias visuales (tema claro/oscuro) — nunca vuelve a
   guardar progreso académico.
+- **Autorización de usuarios** (`js/autorizacion.js`, `sql/autorizacion.sql`):
+  toda cuenta nueva queda `activo=false, rol='alumno'` hasta que un
+  administrador la apruebe — salvo la primera cuenta que se registra en
+  una instalación, que se vuelve `admin` activo automáticamente (ver
+  "Primer administrador" más abajo). El cliente nunca puede escribir
+  `activo` ni `rol` directamente: todo pasa por funciones `SECURITY
+  DEFINER` en Supabase.
 - La pantalla de bienvenida (fondo animado en Canvas, transición de
-  entrada a la biblioteca) y la pantalla de "necesitas conexión".
+  entrada a la biblioteca) y las pantallas de "necesitas conexión" y
+  "cuenta pendiente de aprobación".
 
 **Corrección vs. rediseño:** un ajuste que no cambia ninguna estructura,
 contrato ni comportamiento visible — sólo hace que el código ya acordado
@@ -125,6 +133,48 @@ Supabase** (tabla `progreso_items`, ver `sql/schema.sql`):
   continuar.
 
 ---
+
+## Primer administrador (bootstrap seguro, sin editar la base de datos)
+
+Cada vez que alguien despliega este proyecto con su propio Supabase desde
+cero, necesita convertirse en administrador sin depender de una
+contraseña maestra, una variable de entorno secreta, ni tener que abrir
+el editor SQL para escribirse un `UPDATE` a mano.
+
+**La estrategia:** la función `registrar_o_actualizar_usuario_actual`
+(en `sql/autorizacion.sql`) revisa, dentro de la misma transacción y bajo
+un bloqueo (`pg_advisory_xact_lock`) que evita condiciones de carrera, si
+la tabla `usuarios` está completamente vacía en el momento exacto del
+registro. Si lo está, esa primera cuenta que inicia sesión queda
+`rol='admin', activo=true` automáticamente; cualquier cuenta posterior
+queda `rol='alumno', activo=false` y debe esperar aprobación.
+
+Por qué esta estrategia y no otra:
+
+- **No requiere configuración.** Nadie tiene que copiar un correo o un
+  usuario de GitHub a una variable de entorno antes del primer deploy.
+- **Es imposible de repetir por accidente.** En cuanto existe una fila en
+  `usuarios`, la condición `not exists (select 1 from usuarios)` nunca
+  vuelve a ser verdadera — no hay forma de "convertirse en el primero" dos
+  veces.
+- **La decisión ocurre en el servidor, no en el cliente.** La función es
+  `SECURITY DEFINER`; el navegador nunca envía `rol` ni `activo` — sólo
+  nombre y avatar. No hay ningún payload que un usuario pueda manipular
+  para auto-aprobarse.
+- **Es el mismo patrón que usan otros proyectos autoalojados** para
+  resolver el problema del "primer usuario = dueño" (ej. paneles de
+  administración que asignan el primer registro como owner) — no es una
+  solución improvisada de este proyecto.
+
+**Si alguna vez pierdes el acceso de administrador** (por ejemplo, te
+degradaste por error desde un futuro panel), la recuperación es manual
+mediante el editor SQL de tu propio proyecto — no expuesta en la
+aplicación, sólo documentada aquí:
+
+```sql
+update usuarios set rol = 'admin', activo = true where user_id =
+  (select id from auth.users where email = 'tu-correo@ejemplo.com');
+```
 
 ## Probarlo en tu computadora
 

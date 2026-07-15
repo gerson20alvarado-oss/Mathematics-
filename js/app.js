@@ -16,6 +16,7 @@
 import { renderHome, renderCategory, renderChapter, renderExercise } from "./views.js";
 import * as tema from "./store.js";
 import * as auth from "./auth.js";
+import * as autorizacion from "./autorizacion.js";
 import * as progreso from "./progreso.js";
 import { cargarManifiesto, aplanarCapitulos } from "./data.js";
 import { actualizarProgresoTopbar } from "./app-shared.js";
@@ -26,14 +27,17 @@ const app = document.getElementById("app");
 const shellApp = document.getElementById("shell-app");
 const pantallaBienvenida = document.getElementById("pantalla-bienvenida");
 const pantallaSinConexion = document.getElementById("pantalla-sin-conexion");
+const pantallaPendiente = document.getElementById("pantalla-pendiente");
 const botonGithub = document.getElementById("boton-github");
 const botonReintentar = document.getElementById("boton-reintentar");
+const botonCerrarSesionPendiente = document.getElementById("boton-cerrar-sesion-pendiente");
 const botonCuenta = document.getElementById("boton-cuenta");
 const menuCuenta = document.getElementById("menu-cuenta");
 const menuCuentaNombre = document.getElementById("menu-cuenta-nombre");
 const botonCerrarSesion = document.getElementById("boton-cerrar-sesion");
 
 let sesionActual = null;
+let rolActual = null; // 'alumno' | 'admin' — listo para el futuro panel de administración
 
 // ---------------- Tema (claro/oscuro) — igual que siempre ----------------
 
@@ -57,6 +61,7 @@ function configurarToggleTema() {
 
 function mostrarBienvenida() {
   pantallaSinConexion.hidden = true;
+  pantallaPendiente.hidden = true;
   pantallaBienvenida.hidden = false;
   pantallaBienvenida.classList.remove("desvanecido");
   shellApp.classList.remove("visible");
@@ -64,8 +69,16 @@ function mostrarBienvenida() {
 
 function mostrarSinConexion() {
   pantallaBienvenida.hidden = true;
+  pantallaPendiente.hidden = true;
   shellApp.classList.remove("visible");
   pantallaSinConexion.hidden = false;
+}
+
+function mostrarPendienteAprobacion() {
+  pantallaBienvenida.hidden = true;
+  pantallaSinConexion.hidden = true;
+  shellApp.classList.remove("visible");
+  pantallaPendiente.hidden = false;
 }
 
 async function mostrarBiblioteca() {
@@ -91,10 +104,26 @@ async function mostrarBiblioteca() {
 
 async function entrarConSesion(usuario) {
   sesionActual = usuario;
-  const nombre = usuario.user_metadata?.user_name || usuario.user_metadata?.full_name || usuario.email || "Cuenta";
+
+  let autorizacionActual;
+  try {
+    autorizacionActual = await autorizacion.autorizarUsuarioActual(usuario);
+  } catch (e) {
+    console.error(e);
+    mostrarSinConexion();
+    return;
+  }
+
+  rolActual = autorizacionActual.rol;
+  const nombre = autorizacionActual.nombreVisible || usuario.email || "Cuenta";
   menuCuentaNombre.textContent = nombre;
   botonCuenta.title = nombre;
   botonCuenta.setAttribute("aria-label", `Cuenta: ${nombre}`);
+
+  if (!autorizacionActual.activo) {
+    mostrarPendienteAprobacion();
+    return;
+  }
 
   try {
     await progreso.cargarProgreso(usuario.id);
@@ -109,6 +138,7 @@ async function entrarConSesion(usuario) {
 
 function salirDeSesion() {
   sesionActual = null;
+  rolActual = null;
   progreso.limpiarProgreso();
   menuCuenta.hidden = true;
   location.hash = "";
@@ -128,6 +158,10 @@ function configurarControlesDeSesion() {
 
   botonCerrarSesion.addEventListener("click", async () => {
     menuCuenta.hidden = true;
+    await auth.cerrarSesion();
+  });
+
+  botonCerrarSesionPendiente.addEventListener("click", async () => {
     await auth.cerrarSesion();
   });
 }
