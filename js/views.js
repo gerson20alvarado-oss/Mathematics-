@@ -166,26 +166,7 @@ export async function renderChapter(app, areaSlug, numero) {
   const meta = area.capitulos.find((c) => c.numero === Number(numero));
   const progresoCap = store.progresoCapitulo(clave, meta.totalReactivos);
 
-  const teoriaHtml = cap.teoria.map((t) => `
-    <article class="cuaderno-card">
-      <div class="cuaderno-card-margen"></div>
-      <div class="cuaderno-card-cuerpo">
-        <h3>${escaparHtml(t.titulo)}</h3>
-        ${t.contenido.split("\n\n").map((p) => `<p>${escaparHtml(p)}</p>`).join("")}
-        ${t.tabla ? renderTablaTeoria(t.tabla) : ""}
-      </div>
-    </article>`).join("");
-
-  const ejemplosHtml = cap.ejemplos.map((e) => `
-    <article class="cuaderno-card cuaderno-card--ejemplo">
-      <div class="cuaderno-card-margen"></div>
-      <div class="cuaderno-card-cuerpo">
-        <h3>${escaparHtml(e.titulo)}</h3>
-        ${e.contenido.split("\n\n").map((p) => `<p>${escaparHtml(p)}</p>`).join("")}
-      </div>
-    </article>`).join("");
-
-  const ejerciciosHtml = cap.ejercicios.map((ej) => {
+  const renderEjercicioItem = (ej) => {
     const total = ej.items.length;
     let completados = 0;
     ej.items.forEach((it) => {
@@ -206,6 +187,45 @@ export async function renderChapter(app, areaSlug, numero) {
         </div>
         <div class="ejercicio-item-flecha">→</div>
       </a>`;
+  };
+
+  // Flujo de aprendizaje: por cada tema del libro, en su orden original,
+  // se muestra su explicación, sus ejemplos y — inmediatamente después —
+  // los ejercicios que evalúan ese tema (según la sección a la que
+  // pertenecen en el libro), en vez de agrupar toda la teoría, todos los
+  // ejemplos y todos los ejercicios por separado.
+  const bloquesPorTema = cap.teoria.map((t) => {
+    const teoriaHtml = `
+      <article class="cuaderno-card">
+        <div class="cuaderno-card-margen"></div>
+        <div class="cuaderno-card-cuerpo">
+          <h3>${escaparHtml(t.titulo)}</h3>
+          ${t.contenido.split("\n\n").map((p) => `<p>${escaparHtml(p)}</p>`).join("")}
+          ${t.tabla ? renderTablaTeoria(t.tabla) : ""}
+        </div>
+      </article>`;
+
+    const ejemplosDelTema = cap.ejemplos.filter((e) => e.tema === t.titulo).map((e) => `
+      <article class="cuaderno-card cuaderno-card--ejemplo">
+        <div class="cuaderno-card-margen"></div>
+        <div class="cuaderno-card-cuerpo">
+          <h3>${escaparHtml(e.titulo)}</h3>
+          ${e.contenido.split("\n\n").map((p) => `<p>${escaparHtml(p)}</p>`).join("")}
+        </div>
+      </article>`).join("");
+
+    const ejerciciosDelTema = cap.ejercicios.filter((ej) => ej.tema === t.titulo);
+    const ejerciciosHtml = ejerciciosDelTema.length
+      ? `<div class="ejercicios-lista">${ejerciciosDelTema.map(renderEjercicioItem).join("")}</div>`
+      : "";
+
+    return `
+      <section class="bloque">
+        <h2 class="bloque-titulo">${escaparHtml(t.titulo)}</h2>
+        ${teoriaHtml}
+        ${ejemplosDelTema}
+        ${ejerciciosHtml}
+      </section>`;
   }).join("");
 
   app.innerHTML = `
@@ -221,24 +241,7 @@ export async function renderChapter(app, areaSlug, numero) {
       ${cap.nota_alcance ? `<p class="nota-alcance">ℹ ${escaparHtml(cap.nota_alcance)}</p>` : ""}
     </section>
 
-    <nav class="capitulo-tabs">
-      <a href="#teoria" class="tab-link">Teoría</a>
-      <a href="#ejemplos" class="tab-link">Ejemplos</a>
-      <a href="#ejercicios" class="tab-link">Ejercicios</a>
-    </nav>
-
-    <section id="teoria" class="bloque">
-      <h2 class="bloque-titulo">Teoría</h2>
-      ${teoriaHtml}
-    </section>
-    <section id="ejemplos" class="bloque">
-      <h2 class="bloque-titulo">Ejemplos</h2>
-      ${ejemplosHtml}
-    </section>
-    <section id="ejercicios" class="bloque">
-      <h2 class="bloque-titulo">Ejercicios</h2>
-      <div class="ejercicios-lista">${ejerciciosHtml}</div>
-    </section>
+    ${bloquesPorTema}
   `;
 
   await refrescarProgresoTopbar();
@@ -278,7 +281,7 @@ export async function renderExercise(app, areaSlug, numero, numeroEjercicio) {
   const reactivosHtml = ej.items.map((item) => renderReactivo(clave, ej, item)).join("");
 
   app.innerHTML = `
-    <a class="volver" href="#/area/${areaSlug}/capitulo/${numero}#ejercicios">← Capítulo ${cap.numero}</a>
+    <a class="volver" href="#/area/${areaSlug}/capitulo/${numero}">← Capítulo ${cap.numero}</a>
     <section class="ejercicio-header">
       <span class="capitulo-header-area">${escaparHtml(cap.area)} · Capítulo ${cap.numero}</span>
       <h1>Ejercicio ${ej.numero_ejercicio} · ${escaparHtml(ej.titulo)}</h1>
