@@ -186,6 +186,26 @@ export function resolverConflictos(conflictos, fusionadoParcial, eleccion) {
 
 // ---------------- Outbox: sube cambios locales a Supabase ----------------
 
+/** Construye la fila a enviar a Supabase garantizando que las columnas
+ *  NOT NULL de progreso_items (revelada, intentos, completado) nunca
+ *  viajen como null/undefined, sin importar cómo haya quedado el
+ *  registro local (por ejemplo, un ítem revelado sin haber sido
+ *  respondido antes nunca pasó por guardarRespuesta() y le faltan
+ *  esos campos). No se toca el schema: se corrige en el origen. */
+function filaParaSupabase(usuarioId, cc, ej, it, registro) {
+  return {
+    user_id: usuarioId,
+    capitulo_clave: cc,
+    ejercicio_numero: Number(ej),
+    item_numero: Number(it),
+    respuesta: registro.respuesta ?? null,       // nullable en el schema
+    correcta: registro.correcta ?? null,          // nullable en el schema
+    revelada: !!registro.revelada,                // NOT NULL -> false por defecto
+    intentos: Number.isFinite(registro.intentos) ? registro.intentos : 0, // NOT NULL -> 0 por defecto
+    completado: !!registro.completado,            // NOT NULL -> false por defecto
+  };
+}
+
 async function subirCambiosPendientes() {
   const cliente = await obtenerClienteSupabasePromesa();
   if (!cliente || !usuarioId) return;
@@ -200,17 +220,7 @@ async function subirCambiosPendientes() {
         if (!registro.completado) continue;
         const marca = marcas[claveFila(cc, ej, it)];
         if (marca && new Date(registro.actualizadoEn || 0) <= new Date(marca)) continue; // ya sincronizado
-        filas.push({
-          user_id: usuarioId,
-          capitulo_clave: cc,
-          ejercicio_numero: Number(ej),
-          item_numero: Number(it),
-          respuesta: registro.respuesta,
-          correcta: registro.correcta,
-          revelada: registro.revelada,
-          intentos: registro.intentos,
-          completado: registro.completado,
-        });
+        filas.push(filaParaSupabase(usuarioId, cc, ej, it, registro));
       }
     }
   }
