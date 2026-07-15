@@ -1,19 +1,15 @@
 // =============================================================
-// supabase-client.js — crea el cliente de Supabase si (y sólo si)
-// la sincronización está habilitada y configurada.
+// supabase-client.js — crea el cliente de Supabase.
 //
-// El SDK se carga dinámicamente desde CDN SOLO cuando esta función
-// se invoca por primera vez (lo que sólo ocurre si SYNC_HABILITADO
-// es true, vía la cadena de imports dinámicos en app.js). Así, un
-// usuario que nunca activa la sincronización jamás genera ni una
-// sola petición de red hacia Supabase — cumple el requisito de que
-// la app funcione completamente sin tocar la red sin iniciar sesión.
-//
-// A diferencia de KaTeX (vendorizado porque hace falta incluso sin
-// conexión), sincronizar es por naturaleza una función que requiere
-// red, así que cargarla bajo demanda desde CDN es la opción correcta.
+// La autenticación es obligatoria en toda la plataforma, así que este
+// módulo se invoca siempre al iniciar la app (ver app.js). El SDK se
+// carga dinámicamente desde CDN (no se vendoriza como KaTeX, porque
+// autenticar y sincronizar son, por naturaleza, funciones que
+// requieren red). Si falla — sin conexión, CDN caído, configuración
+// vacía — se devuelve `null` y app.js lo interpreta como "necesita
+// conexión a internet" (ver pantalla de sin-conexión).
 // =============================================================
-import { SYNC_HABILITADO, SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
 const SDK_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
 
@@ -33,7 +29,8 @@ function cargarSdk() {
 export function obtenerClienteSupabasePromesa() {
   if (clientePromesa) return clientePromesa;
 
-  if (!SYNC_HABILITADO || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.warn("Supabase no está configurado (falta SUPABASE_URL o SUPABASE_ANON_KEY en config.js).");
     clientePromesa = Promise.resolve(null);
     return clientePromesa;
   }
@@ -46,7 +43,8 @@ export function obtenerClienteSupabasePromesa() {
       });
     })
     .catch((e) => {
-      console.warn("Sincronización desactivada, la app sigue funcionando con LocalStorage:", e.message);
+      console.warn("No se pudo inicializar Supabase:", e.message);
+      clientePromesa = null; // permite reintentar en la siguiente llamada (ej. al reconectar)
       return null;
     });
 

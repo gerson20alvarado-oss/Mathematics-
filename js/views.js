@@ -6,7 +6,7 @@
 // no tocar el diseño visual.
 // =============================================================
 import { cargarManifiesto, obtenerArea, cargarCapitulo, obtenerEjercicio, aplanarCapitulos, claveCapitulo } from "./data.js";
-import * as store from "./store.js";
+import * as progreso from "./progreso.js";
 import { calificar, generarPista, generarExplicacion } from "./grading.js";
 import { actualizarProgresoTopbar, renderizarMate } from "./app-shared.js";
 
@@ -18,7 +18,7 @@ function escaparHtml(s) {
 
 async function refrescarProgresoTopbar() {
   const manifiesto = await cargarManifiesto();
-  actualizarProgresoTopbar(store.progresoLibro(aplanarCapitulos(manifiesto)));
+  actualizarProgresoTopbar(progreso.progresoLibro(aplanarCapitulos(manifiesto)));
 }
 
 // -------------------------------------------------------------
@@ -28,7 +28,7 @@ export async function renderHome(app) {
   app.innerHTML = `<p class="cargando">Cargando índice…</p>`;
   const manifiesto = await cargarManifiesto();
   const capitulosPlanos = aplanarCapitulos(manifiesto);
-  const progresoTotal = store.progresoLibro(capitulosPlanos);
+  const progresoTotal = progreso.progresoLibro(capitulosPlanos);
 
   const tarjetas = manifiesto.map((area) => {
     const capitulosDeArea = capitulosPlanos.filter((c) => c.areaSlug === area.slug);
@@ -46,7 +46,7 @@ export async function renderHome(app) {
         </div>`;
     }
 
-    const pct = store.progresoArea(capitulosDeArea);
+    const pct = progreso.progresoArea(capitulosDeArea);
     return `
       <a href="#/area/${area.slug}" class="capitulo-card capitulo-card--disponible">
         <div class="capitulo-card-margen"></div>
@@ -107,7 +107,7 @@ export async function renderCategory(app, areaSlug) {
         </div>`;
     }
     const clave = claveCapitulo(areaSlug, cap.numero);
-    const pct = store.progresoCapitulo(clave, cap.totalReactivos);
+    const pct = progreso.progresoCapitulo(clave, cap.totalReactivos);
     return `
       <a href="#/area/${areaSlug}/capitulo/${cap.numero}" class="capitulo-card capitulo-card--disponible">
         <div class="capitulo-card-margen"></div>
@@ -126,7 +126,7 @@ export async function renderCategory(app, areaSlug) {
   }).join("");
 
   const capitulosDeArea = aplanarCapitulos(await cargarManifiesto()).filter((c) => c.areaSlug === areaSlug);
-  const progresoArea = store.progresoArea(capitulosDeArea);
+  const progresoArea = progreso.progresoArea(capitulosDeArea);
 
   app.innerHTML = `
     <a class="volver" href="#/">← Índice</a>
@@ -145,7 +145,7 @@ export async function renderCategory(app, areaSlug) {
     </section>
   `;
 
-  actualizarProgresoTopbar(store.progresoLibro(aplanarCapitulos(await cargarManifiesto())));
+  actualizarProgresoTopbar(progreso.progresoLibro(aplanarCapitulos(await cargarManifiesto())));
 }
 
 // -------------------------------------------------------------
@@ -164,13 +164,13 @@ export async function renderChapter(app, areaSlug, numero) {
   const area = await obtenerArea(areaSlug);
   const clave = claveCapitulo(areaSlug, numero);
   const meta = area.capitulos.find((c) => c.numero === Number(numero));
-  const progresoCap = store.progresoCapitulo(clave, meta.totalReactivos);
+  const progresoCap = progreso.progresoCapitulo(clave, meta.totalReactivos);
 
   const renderEjercicioItem = (ej) => {
     const total = ej.items.length;
     let completados = 0;
     ej.items.forEach((it) => {
-      const st = store.obtenerEstadoItem(clave, ej.numero_ejercicio, it.item);
+      const st = progreso.obtenerEstadoItem(clave, ej.numero_ejercicio, it.item);
       if (st?.completado) completados++;
     });
     const pct = total ? Math.round((100 * completados) / total) : 0;
@@ -298,10 +298,10 @@ export async function renderExercise(app, areaSlug, numero, numeroEjercicio) {
 }
 
 function renderReactivo(clave, ej, item) {
-  const estado = store.obtenerEstadoItem(clave, ej.numero_ejercicio, item.item);
+  const estado = progreso.obtenerEstadoItem(clave, ej.numero_ejercicio, item.item);
   const chip = estado?.completado
-    ? `<span class="reactivo-estado-chip ${estado.revelada ? "revelado" : (estado.correcta ? "ok" : "fallo")}">
-         ${estado.revelada ? "vista" : (estado.correcta ? "correcto" : "intentado")}
+    ? `<span class="reactivo-estado-chip ${estado.correcta ? "ok" : "fallo"}">
+         ${estado.correcta ? "correcto" : "intentado"}
        </span>`
     : "";
 
@@ -409,7 +409,7 @@ function conectarReactivo(app, clave, ej, item) {
     return `<div class="feedback-caja ${tipo}"><span class="feedback-sello">${sello}</span><span>${mensaje}</span></div>`;
   }
 
-  btnRevisar.addEventListener("click", () => {
+  btnRevisar.addEventListener("click", async () => {
     const respuesta = obtenerRespuestaUsuario();
     if (respuestaEstaVacia(respuesta)) {
       feedback.innerHTML = cajaFeedback("info", `<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em' aria-hidden='true'><path d='M12 20h9'/><path d='M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z'/></svg>`, "Selecciona o escribe una respuesta antes de revisar.");
@@ -417,7 +417,16 @@ function conectarReactivo(app, clave, ej, item) {
     }
     const itemCompleto = { ...item, tipo: ej.tipo, tema: ej.tema };
     const correcta = calificar(ej.tipo, respuesta, item.respuesta_oficial);
-    store.guardarRespuesta(clave, ej.numero_ejercicio, item.item, respuesta, correcta);
+
+    btnRevisar.disabled = true;
+    try {
+      await progreso.guardarRespuesta(clave, ej.numero_ejercicio, item.item, respuesta, correcta);
+    } catch (e) {
+      feedback.innerHTML = cajaFeedback("info", `<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em' aria-hidden='true'><circle cx='12' cy='12' r='9'/><line x1='12' y1='8' x2='12' y2='13'/><line x1='12' y1='16' x2='12.01' y2='16'/></svg>`, e.message || "No se pudo guardar tu respuesta. Revisa tu conexión e inténtalo de nuevo.");
+      btnRevisar.disabled = false;
+      return;
+    }
+    btnRevisar.disabled = false;
 
     if (correcta) {
       feedback.innerHTML = cajaFeedback("ok", `<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em' aria-hidden='true'><polyline points='20 6 9 17 4 12'/></svg>`, "¡Correcto!");
@@ -429,14 +438,15 @@ function conectarReactivo(app, clave, ej, item) {
   });
 
   btnMostrar.addEventListener("click", () => {
-    store.marcarRevelada(clave, ej.numero_ejercicio, item.item);
+    // Puramente visual: NO guarda nada, no cuenta como intento, no marca
+    // completado, no toca Supabase. Se pierde al recargar la página, tal
+    // como se acordó ("Mostrar respuesta" no es una decisión académica).
     const textoRespuesta = (ej.tipo === "valor_posicional_doble")
       ? `Valor absoluto: <strong>${escaparHtml(item.respuesta_oficial.absoluto)}</strong> · Valor relativo: <strong>${escaparHtml(item.respuesta_oficial.relativo)}</strong>`
       : (ej.tipo === "division_cociente_residuo")
       ? `Cociente: <strong>${escaparHtml(item.respuesta_oficial.cociente)}</strong> · Residuo: <strong>${escaparHtml(item.respuesta_oficial.residuo)}</strong>`
       : `Respuesta oficial del libro: <strong>${escaparHtml(item.respuesta_oficial)}</strong>`;
     feedback.innerHTML = cajaFeedback("info", `<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em' aria-hidden='true'><path d='M6 3h9l5 5v13H6Z'/><path d='M15 3v5h5'/><line x1='9' y1='13' x2='15' y2='13'/><line x1='9' y1='17' x2='15' y2='17'/></svg>`, textoRespuesta);
-    refrescarProgresoTopbar();
   });
 
   btnExplicar.addEventListener("click", () => {

@@ -15,8 +15,10 @@ export async function iniciarSesionConGitHub() {
   });
 }
 
-/** Cierra sesión SIN tocar el progreso local. La app sigue
- *  funcionando normalmente con LocalStorage después de esto. */
+/** Cierra la sesión de Supabase. El progreso académico nunca se toca aquí
+ *  (vive en Supabase, no en este dispositivo) — quien llama (app.js) es
+ *  responsable de limpiar la caché en memoria de progreso.js y volver a
+ *  mostrar la pantalla de bienvenida. */
 export async function cerrarSesion() {
   const cliente = await obtenerClienteSupabasePromesa();
   if (!cliente) return;

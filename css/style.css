@@ -54,6 +54,8 @@
 
 * { box-sizing: border-box; }
 
+[hidden] { display: none !important; }
+
 html { scroll-behavior: smooth; }
 
 body {
@@ -247,7 +249,6 @@ p { margin: 0 0 .9em; color: var(--ink); }
 .reactivo-estado-chip { margin-left: auto; font-family: var(--font-mono); font-size: .72rem; padding: 3px 9px; border-radius: 20px; }
 .reactivo-estado-chip.ok { background: var(--success-soft); color: var(--success); }
 .reactivo-estado-chip.fallo { background: var(--error-soft); color: var(--error); }
-.reactivo-estado-chip.revelado { background: var(--accent-2-soft); color: var(--accent-2); }
 
 .opciones-comparacion { display: flex; gap: 10px; margin-bottom: 16px; }
 .opcion-simbolo {
@@ -343,30 +344,146 @@ p { margin: 0 0 .9em; color: var(--ink); }
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
 
-/* ---------- Sincronización (opcional, sólo visible si está configurada) ---------- */
-.indicador-sync {
-  font-family: var(--font-mono);
-  font-size: .72rem;
-  color: var(--ink-faint);
-  white-space: nowrap;
-}
-.indicador-sync--sincronizando { color: var(--accent-2); }
-.indicador-sync--sincronizado { color: var(--success); }
-.indicador-sync--sin-conexion { color: var(--error); }
-.indicador-sync--conflicto { color: var(--error); font-weight: 600; }
-
 .btn-icono.cuenta-activa { border-color: var(--accent); color: var(--accent); }
-#boton-cuenta[hidden] { display: none; }
 
-.conflicto-overlay {
+/* ---------- Menú de cuenta (discreto, un solo ítem) ---------- */
+.menu-cuenta-envoltorio { position: relative; }
+.menu-cuenta {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  background: var(--surface);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  box-shadow: var(--sombra);
+  padding: 10px;
+  z-index: 30;
+}
+.menu-cuenta-nombre {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  color: var(--ink-faint);
+  padding: 4px 8px 8px;
+  border-bottom: 1px solid var(--borde);
+  margin-bottom: 6px;
+  word-break: break-word;
+}
+.menu-cuenta-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: .85rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+.menu-cuenta-item:hover { background: var(--surface-2); color: var(--error); }
+
+/* ---------- Transición de la biblioteca (shell) ---------- */
+#shell-app {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.9s ease;
+}
+#shell-app.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------- Pantalla de bienvenida ---------- */
+.bienvenida {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  z-index: 100;
+  overflow: hidden;
+  background: #0b0f14; /* base oscura fija: la escena cósmica es la misma en ambos temas */
+  transition: opacity 1.15s ease;
 }
-.conflicto-caja { max-width: 480px; margin: 0; }
-.conflicto-caja .reactivo-acciones { margin-top: 10px; }
+.bienvenida.desvanecido {
+  opacity: 0;
+  pointer-events: none;
+}
+.bienvenida-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.bienvenida-contenido {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  margin: 0 24px;
+  text-align: center;
+  padding: 40px;
+}
+.bienvenida-marca { display: inline-flex; margin-bottom: 28px; }
+.bienvenida-marca .marca-icono {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: #F1EFE6;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 1.3rem;
+}
+.bienvenida-titulo {
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  line-height: 1.25;
+  color: #F5F4F0;
+  margin: 0 0 16px;
+}
+.bienvenida-subtitulo {
+  font-size: 1rem;
+  color: rgba(245,244,240,0.68);
+  margin: 0 0 36px;
+  line-height: 1.6;
+}
+.boton-github {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 26px;
+  border-radius: 999px;
+  border: none;
+  background: #F5F4F0;
+  color: #14161A;
+  font-family: var(--font-body);
+  font-size: .95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2), 0 12px 30px rgba(0,0,0,0.35);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.boton-github:hover { transform: translateY(-1px); filter: brightness(1.04); box-shadow: 0 2px 4px rgba(0,0,0,0.25), 0 16px 36px rgba(0,0,0,0.4); }
+.boton-github:active { transform: translateY(0); }
+
+/* ---------- Pantalla de sin conexión ---------- */
+.sin-conexion {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 24px;
+}
+.sin-conexion-contenido { max-width: 420px; text-align: center; }
+.sin-conexion-icono { width: 48px; height: 48px; color: var(--ink-faint); margin-bottom: 20px; }
+.sin-conexion-contenido h2 { font-family: var(--font-display); font-size: 1.3rem; margin: 0 0 12px; }
+.sin-conexion-contenido p { color: var(--ink-soft); margin-bottom: 24px; }
+
+@media (max-width: 640px) {
+  .bienvenida-titulo { font-size: 1.6rem; }
+  .bienvenida-contenido { padding: 24px; }
+}

@@ -4,9 +4,11 @@ Versión web **100% estática** (HTML + CSS + JavaScript, sin backend) del
 libro **Matemáticas Simplificadas** (2.ª edición, CONAMAT / Pearson):
 teoría, ejemplos, ejercicios interactivos y respuestas oficiales.
 
-No usa Python, Flask, Node.js ni base de datos. El progreso se guarda en
-el `localStorage` del navegador. Se puede publicar tal cual en **GitHub
-Pages**, **Netlify** o **Vercel**.
+No usa Python, Flask ni Node.js en producción — el front-end es HTML/CSS/JS
+estático y se publica en **GitHub Pages**, **Netlify** o **Vercel** sin
+build. Requiere una cuenta gratuita de **Supabase** (base de datos +
+autenticación): el acceso es obligatorio con GitHub, y el progreso
+académico vive únicamente en Supabase, nunca en el navegador.
 
 La navegación tiene 4 niveles, siguiendo las grandes áreas del libro:
 
@@ -71,50 +73,52 @@ previa**, con una explicación del motivo antes de tocarlos:
 - Organización por áreas (Aritmética, Álgebra, Geometría y Trigonometría,
   Geometría Analítica, Cálculo Diferencial, Cálculo Integral).
 - Flujo intercalado tema → ejemplos → ejercicios dentro de cada capítulo.
-- Sistema de progreso y su esquema en `localStorage` (ver abajo).
 - Integración de KaTeX (`vendor/katex/`, `renderizarMate()`).
 - Los tipos de reactivo existentes (`comparacion`, `texto`,
-  `valor_posicional_doble`).
-- **Sincronización con Supabase** (`js/sync.js`, `js/auth.js`,
-  `js/supabase-client.js`, `sql/schema.sql`) y **GitHub Auth como método de
-  inicio de sesión**. Desde esta versión forman parte del núcleo oficial de
-  la plataforma, no de una capa experimental — LocalStorage sigue siendo el
-  almacenamiento por defecto y la app sigue funcionando 100 % sin sesión
-  iniciada; la sincronización es la capa adicional ya adoptada.
-- Las reglas de fusión de progreso (`revelada` = OR, `intentos` = máximo,
-  resto = timestamp del servidor más reciente, conflicto genuino = pregunta
-  al usuario) y el esquema de `progreso_items` en Supabase.
+  `valor_posicional_doble`, `division_cociente_residuo`).
+- **Autenticación obligatoria con GitHub y Supabase como única fuente de
+  verdad del progreso académico** (`js/auth.js`, `js/supabase-client.js`,
+  `js/progreso.js`, `sql/schema.sql`). No existe modo invitado ni modo sin
+  conexión: sin sesión no se carga ningún libro; sin internet se muestra
+  una pantalla dedicada pidiendo conexión. `js/store.js` quedó reducido
+  únicamente a preferencias visuales (tema claro/oscuro) — nunca vuelve a
+  guardar progreso académico.
+- La pantalla de bienvenida (fondo animado en Canvas, transición de
+  entrada a la biblioteca) y la pantalla de "necesitas conexión".
 
-**Corrección vs. rediseño:** una corrección como la de `sync.js` (ajustar la
-serialización de una fila antes del `POST` para no violar una columna
-`NOT NULL`) es un **bugfix** — no requiere romper este congelamiento ni pedir
-aprobación de arquitectura, porque no cambia ninguna estructura, contrato ni
-comportamiento visible; sólo hace que el código ya acordado funcione como se
-diseñó. Un cambio de arquitectura sería, por ejemplo, alterar el esquema de
-`progreso_items`, el formato de `ms:progreso:v1`, o el flujo de fusión — eso
-sí requiere explicar el motivo y esperar aprobación antes de tocarlo.
+**Corrección vs. rediseño:** un ajuste que no cambia ninguna estructura,
+contrato ni comportamiento visible — sólo hace que el código ya acordado
+funcione como se diseñó — es un **bugfix** y no requiere romper este
+congelamiento. Cambiar el esquema de `progreso_items`, la jerarquía de
+navegación, o el modelo "Supabase como única fuente de verdad" sí requiere
+explicar el motivo y esperar aprobación antes de tocarlo.
 
 ### Contrato de compatibilidad del progreso
 
-El progreso del usuario es prioridad absoluta y **nunca se pierde entre
-actualizaciones**:
+El progreso del usuario es prioridad absoluta y vive **exclusivamente en
+Supabase** (tabla `progreso_items`, ver `sql/schema.sql`):
 
-- Todo el progreso vive bajo una única llave versionada de `localStorage`:
-  `ms:progreso:v1` (ver `js/store.js`), indexada como
-  `areaSlug-capitulo-numero → numero_ejercicio → item_numero`.
-- Agregar áreas, capítulos, temas o ejercicios nuevos es **siempre aditivo**:
-  sólo se agregan entradas a `manifest.json` y nuevos `capituloN.json`. El
-  código nunca borra ni reescribe la llave de progreso al cargar.
-- Las búsquedas de área y capítulo son por **identificador** (`slug`,
-  `numero`), no por posición en el arreglo — se pueden agregar capítulos en
-  cualquier lugar del manifiesto sin afectar el progreso existente.
-- Por lo mismo, **una vez publicados, el `slug` de un área y el `numero` de
-  un capítulo o ejercicio no cambian nunca**; son el identificador estable
-  que ata el progreso guardado a su contenido.
-- Si en el futuro fuera indispensable cambiar la forma de los datos
-  guardados, se hace mediante una migración explícita (`ms:progreso:v1` →
-  `v2`) que lee el formato viejo y lo convierte, nunca borrando el original
-  hasta confirmar que la migración fue exitosa.
+- `js/progreso.js` es el único módulo que lee o escribe progreso. Al
+  iniciar sesión, descarga todo el progreso del usuario una sola vez hacia
+  una caché en memoria (se pierde al recargar la página, se reconstruye
+  desde Supabase la próxima vez que haya sesión). No hay LocalStorage de
+  respaldo ni fusión de ningún tipo — un usuario nuevo simplemente empieza
+  con progreso vacío, sin ningún paso adicional.
+- Cada respuesta se guarda **inmediatamente** al pulsar "Revisar" (no
+  mientras se escribe). "Mostrar respuesta" es puramente visual: nunca
+  llama a `progreso.js`, nunca cuenta como intento, nunca marca un
+  reactivo como completado, y se pierde al recargar la página.
+- Las filas de Supabase se identifican por
+  `(user_id, capitulo_clave, ejercicio_numero, item_numero)` — el mismo
+  identificador estable que usaba antes el árbol de progreso local.
+  **Una vez publicados, el `slug` de un área y el `numero` de un capítulo
+  o ejercicio no cambian nunca**; agregar contenido nuevo es siempre
+  aditivo (nuevas filas de `manifest.json` / `capituloN.json`) y nunca
+  afecta el progreso ya guardado de ningún usuario.
+- Si en el futuro fuera indispensable cambiar la forma de las columnas de
+  `progreso_items`, se hace con una migración explícita (columnas nuevas
+  con `DEFAULT`, nunca reutilizar una columna con otro significado), nunca
+  con un `DROP`/`ALTER` destructivo sobre datos en vivo.
 - Antes de publicar cualquier cambio relacionado con el sistema de
   progreso, se evalúa primero si existe riesgo de pérdida de datos; si lo
   hay, se detiene la implementación y se explica el riesgo antes de
@@ -151,83 +155,48 @@ No hay comando de build; el "publish directory" es la raíz del proyecto.
 
 ```
 mathsimplificadas-static/
-├── index.html            # única página HTML (shell de la SPA)
+├── index.html              # shell de la SPA: bienvenida, sin-conexión y biblioteca
 ├── css/
-│   └── style.css         # diseño "cuaderno / pizarrón", modo oscuro (sin cambios)
+│   └── style.css           # diseño "cuaderno / pizarrón" + pantalla de bienvenida
 ├── js/
-│   ├── app.js             # router SPA (hash, 4 niveles) + arranque
-│   ├── app-shared.js       # helper compartido (barra de progreso)
-│   ├── views.js            # renderizado: inicio/área/capítulo/ejercicio
-│   ├── data.js               # manifiesto anidado + carga de capítulos (lazy)
-│   ├── store.js               # progreso en localStorage (sin cambios en su lógica interna)
-│   ├── grading.js              # calificación, pistas y explicaciones (sin cambios)
-│   └── utils.js                 # normalización de texto y fracciones (sin cambios)
+│   ├── app.js                # control de acceso + router SPA (hash, 4 niveles)
+│   ├── app-shared.js          # helper compartido (barra de progreso, KaTeX)
+│   ├── auth.js                 # GitHub OAuth vía Supabase Auth
+│   ├── supabase-client.js       # carga del SDK de Supabase bajo demanda
+│   ├── progreso.js               # progreso académico — Supabase, única fuente de verdad
+│   ├── fondo-estrellas.js          # canvas de estrellas de la pantalla de bienvenida
+│   ├── views.js                     # renderizado: inicio/área/capítulo/ejercicio
+│   ├── data.js                       # manifiesto anidado + carga de capítulos (lazy)
+│   ├── store.js                       # SÓLO preferencias visuales (tema)
+│   ├── grading.js                      # calificación, pistas y explicaciones
+│   └── utils.js                         # normalización de texto y fracciones
 ├── data/
-│   ├── manifest.json      # las 7 áreas, cada una con sus capítulos
-│   ├── aritmetica/
-│   │   └── capitulo1.json # contenido completo del capítulo 1 (lazy-load)
-│   ├── algebra/                  # (vacío por ahora)
-│   ├── geometria/                # (vacío por ahora)
-│   ├── trigonometria/            # (vacío por ahora)
-│   ├── geometria-analitica/      # (vacío por ahora)
-│   ├── calculo-diferencial/      # (vacío por ahora)
-│   └── calculo-integral/         # (vacío por ahora)
-├── assets/                # (iconos/recursos futuros)
+│   ├── manifest.json      # las 6 áreas, cada una con sus capítulos
+│   └── aritmetica/
+│       ├── capitulo1.json # Números reales (109 reactivos)
+│       └── capitulo2.json # Números enteros (181 reactivos)
+├── sql/
+│   └── schema.sql          # tabla progreso_items + Row Level Security
 ├── vendor/
 │   └── katex/              # KaTeX auto-hospedado (CSS, JS, fuentes, auto-render)
 └── README.md
 ```
 
-### Qué cambió respecto a la versión anterior (y qué no)
-
-**Cambió únicamente lo necesario para soportar la jerarquía de áreas:**
-- `data/manifest.json`: ahora es una lista de 7 áreas, cada una con un
-  arreglo `capitulos` (antes era una lista plana de capítulos).
-- `data/capitulo1.json` → `data/aritmetica/capitulo1.json` (mismo
-  contenido, exportado desde la misma fuente verificada; sólo cambió su
-  ubicación).
-- `js/data.js`: nuevas funciones `obtenerArea`, `obtenerCapituloMeta`,
-  `aplanarCapitulos` y `claveCapitulo` para leer el manifiesto anidado y
-  construir la ruta `data/<area>/<archivo>`.
-- `js/views.js`: se agregó `renderCategory` (pantalla de área) y se
-  adaptaron `renderChapter`/`renderExercise` para recibir `areaSlug` +
-  `numero` en vez de un slug plano de capítulo.
-- `js/app.js`: nuevas expresiones de ruta para los 4 niveles
-  (`#/area/<areaSlug>`, `#/area/<areaSlug>/capitulo/<numero>`,
-  `#/area/<areaSlug>/capitulo/<numero>/ejercicio/<n>`).
-- `js/store.js`: **sólo** se adaptó `progresoLibro` (ahora recibe la
-  lista ya aplanada de capítulos en vez del manifiesto plano de antes) y
-  se agregaron `progresoConjunto`/`progresoArea` como envoltorios del
-  mismo cálculo, para poder mostrar el progreso agregado también a nivel
-  área. Las funciones que leen/escriben `localStorage`
-  (`guardarRespuesta`, `marcarRevelada`, `obtenerEstadoItem`,
-  `contarCompletadosCapitulo`, `progresoCapitulo`) son **exactamente las
-  mismas**, sólo reciben ahora una clave compuesta
-  (`"<área>-capitulo-<número>"`, ej. `"aritmetica-capitulo-1"`) en lugar
-  de `"capitulo-1"`, para que un mismo número de capítulo en distintas
-  áreas no comparta progreso por accidente.
-
-**No cambió:**
-- `css/style.css` — cero ediciones (verificado byte a byte).
-- `index.html` — cero ediciones.
-- `js/grading.js` y `js/utils.js` — cero ediciones. Calificación, pistas
-  y explicaciones funcionan exactamente igual que antes.
-- El comportamiento de los ejercicios (Revisar, Pista, Mostrar
-  respuesta, 🤖 Explicar) es idéntico al de la versión anterior.
-
 ## Cómo funciona la navegación ahora
 
-1. **Inicio** (`#/`) — muestra únicamente las 7 grandes áreas del libro
-   (🔢 Aritmética, ➕ Álgebra, 📐 Geometría, 📐 Trigonometría, 📊 Geometría
-   Analítica, ∂ Cálculo Diferencial, ∫ Cálculo Integral), cada una con su
-   nombre, descripción breve, barra de progreso y porcentaje agregado de
-   todos sus capítulos.
-2. **Área** (`#/area/aritmetica`) — muestra únicamente los capítulos de
+1. **Sin sesión** — pantalla de bienvenida (fondo animado + botón "Continuar
+   con GitHub"). No se carga ningún libro ni capítulo.
+2. **Inicio** (`#/`) — tras iniciar sesión, muestra las áreas del libro
+   (Aritmética, Álgebra, Geometría y Trigonometría, Geometría Analítica,
+   Cálculo Diferencial, Cálculo Integral), cada una con su progreso
+   agregado (leído desde Supabase).
+3. **Área** (`#/area/aritmetica`) — muestra únicamente los capítulos de
    esa materia (Capítulo 1, Capítulo 2, …), con su propio progreso.
-3. **Capítulo** (`#/area/aritmetica/capitulo/1`) — teoría, ejemplos y
+4. **Capítulo** (`#/area/aritmetica/capitulo/1`) — teoría, ejemplos y
    lista de ejercicios, igual que antes.
-4. **Ejercicio** (`#/area/aritmetica/capitulo/1/ejercicio/4`) — Revisar,
-   Pista, Mostrar respuesta, 🤖 Explicar; sin cambios de comportamiento.
+5. **Ejercicio** (`#/area/aritmetica/capitulo/1/ejercicio/4`) — Revisar,
+   Pista, Mostrar respuesta, Explicar. "Mostrar respuesta" es puramente
+   visual y no afecta el progreso guardado (ver más abajo).
 
 ## Cómo se agrega el siguiente capítulo (fase 2 en adelante)
 
