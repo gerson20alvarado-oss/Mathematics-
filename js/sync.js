@@ -90,11 +90,28 @@ function fusionarSeguro(local, remotoLocal, remotoGana) {
 }
 
 function mismaRespuesta(a, b) {
-  try {
-    return JSON.stringify(a) === JSON.stringify(b);
-  } catch {
-    return a === b;
+  if (a === b) return true;
+  if (a && b && typeof a === "object" && typeof b === "object") {
+    const clavesA = Object.keys(a).sort();
+    const clavesB = Object.keys(b).sort();
+    if (clavesA.length !== clavesB.length) return false;
+    return clavesA.every((k, i) => clavesA[i] === clavesB[i] && a[k] === b[k]);
   }
+  return false;
+}
+
+/** ¿El árbol de progreso tiene al menos un reactivo completado? Se usa
+ *  para las reglas 1 y 2: una cuenta/dispositivo "vacío" nunca debe
+ *  generar un conflicto, sin importar cuántas claves anidadas existan. */
+function hayProgresoReal(arbol) {
+  for (const ejercicios of Object.values(arbol || {})) {
+    for (const items of Object.values(ejercicios || {})) {
+      for (const registro of Object.values(items || {})) {
+        if (registro?.completado) return true;
+      }
+    }
+  }
+  return false;
 }
 
 // ---------------- Fusión inicial (al iniciar sesión / reconectar) ----------------
@@ -114,11 +131,45 @@ async function fusionarConRemoto() {
   }
 
   const local = store.obtenerTodoElProgreso();
+  const remotoTieneFilas = (filas || []).length > 0;
+  const localTieneProgreso = hayProgresoReal(local);
+
+  // Regla 1: cuenta nueva (Supabase no tiene nada para este usuario) ->
+  // nunca hay nada que fusionar ni conflicto posible. Se sube el progreso
+  // local de inmediato (sin esperar el debounce de 2s del outbox normal).
+  if (!remotoTieneFilas) {
+    fijarEstado("sincronizado");
+    if (localTieneProgreso) await subirCambiosPendientes();
+    return null;
+  }
+
+  // Regla 2: este dispositivo/navegador no tiene ningún progreso local ->
+  // no hay nada que decidir, se adopta el remoto completo tal cual.
+  if (!localTieneProgreso) {
+    const fusionadoVacio = {};
+    const marcasVacio = leerMarcasServidor();
+    for (const fila of filas) {
+      const { capitulo_clave: cc, ejercicio_numero: ej, item_numero: it } = fila;
+      fusionadoVacio[cc] ??= {};
+      fusionadoVacio[cc][ej] ??= {};
+      fusionadoVacio[cc][ej][it] = filaARegistroLocal(fila);
+      marcasVacio[claveFila(cc, ej, it)] = fila.updated_at;
+    }
+    guardarMarcasServidor(marcasVacio);
+    store.reconciliarDesdeSync(fusionadoVacio);
+    fijarEstado("sincronizado");
+    return null;
+  }
+
+  // Regla 3: ambos lados tienen progreso real -> se fusiona reactivo por
+  // reactivo con las reglas ya aprobadas, y sólo se pregunta al usuario
+  // cuando un mismo reactivo tenga una respuesta distinta y completa en
+  // ambos lados (conflicto genuino que no puede resolverse solo).
   const fusionado = JSON.parse(JSON.stringify(local));
   const marcas = leerMarcasServidor();
   const conflictos = [];
 
-  for (const fila of filas || []) {
+  for (const fila of filas) {
     const { capitulo_clave: cc, ejercicio_numero: ej, item_numero: it } = fila;
     const localItem = local?.[cc]?.[ej]?.[it];
     const remotoLocal = filaARegistroLocal(fila);
@@ -256,6 +307,8 @@ function programarSubida() {
 // ---------------- Ciclo de vida ----------------
 
 let onConflictoDetectado = null;
+let fusionEnCurso = null; // promesa en curso, evita fusiones concurrentes del mismo login
+let ultimoUsuarioProcesado = null;
 
 /** Registra el callback que la UI usa para mostrar el selector de
  *  conflictos (local / remoto / fusionar) cuando haga falta. */
@@ -264,7 +317,18 @@ export function alDetectarConflicto(callback) {
 }
 
 async function manejarSesion(usuario) {
-  usuarioId = usuario?.id || null;
+  const nuevoUsuarioId = usuario?.id || null;
+
+  // Supabase puede notificar la misma sesión más de una vez al iniciar
+  // (getSession() explícito + el propio evento de onAuthStateChange). Si
+  // ya estamos procesando o ya procesamos exactamente esta sesión, no se
+  // repite la fusión — evita una carrera que podría, en teoría, comparar
+  // el progreso local contra una fusión a medias y detectar un conflicto
+  // que no existe.
+  if (fusionEnCurso) await fusionEnCurso;
+  if (nuevoUsuarioId !== null && nuevoUsuarioId === ultimoUsuarioProcesado) return;
+
+  usuarioId = nuevoUsuarioId;
 
   if (cancelarSuscripcionProgreso) {
     cancelarSuscripcionProgreso();
@@ -272,11 +336,16 @@ async function manejarSesion(usuario) {
   }
 
   if (!usuarioId) {
+    ultimoUsuarioProcesado = null;
     fijarEstado("sin-sesion");
     return;
   }
 
-  const resultado = await fusionarConRemoto();
+  fusionEnCurso = fusionarConRemoto();
+  const resultado = await fusionEnCurso;
+  fusionEnCurso = null;
+  ultimoUsuarioProcesado = usuarioId;
+
   if (resultado?.conflictos?.length && onConflictoDetectado) {
     onConflictoDetectado(resultado.conflictos, resultado.fusionadoParcial);
   }

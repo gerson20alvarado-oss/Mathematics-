@@ -7,15 +7,17 @@
 import { normalizar, normalizarLaxo, parseValor, compararFracciones, separarEnunciado } from "./utils.js";
 
 export function calificar(tipo, respuestaUsuario, respuestaOficial) {
-  if (tipo === "valor_posicional_doble") {
+  if (tipo === "valor_posicional_doble" || tipo === "division_cociente_residuo") {
     if (!respuestaUsuario || typeof respuestaUsuario !== "object") return false;
-    const { absoluto, relativo } = respuestaUsuario;
-    if (!absoluto || !absoluto.trim() || !relativo || !relativo.trim()) return false;
-    const okAbsoluto = normalizar(absoluto) === normalizar(respuestaOficial.absoluto) ||
-      normalizarLaxo(absoluto) === normalizarLaxo(respuestaOficial.absoluto);
-    const okRelativo = normalizar(relativo) === normalizar(respuestaOficial.relativo) ||
-      normalizarLaxo(relativo) === normalizarLaxo(respuestaOficial.relativo);
-    return okAbsoluto && okRelativo;
+    const claves = tipo === "valor_posicional_doble" ? ["absoluto", "relativo"] : ["cociente", "residuo"];
+    for (const clave of claves) {
+      const val = respuestaUsuario[clave];
+      if (!val || !val.trim()) return false;
+      const ok = normalizar(val) === normalizar(respuestaOficial[clave]) ||
+        normalizarLaxo(val) === normalizarLaxo(respuestaOficial[clave]);
+      if (!ok) return false;
+    }
+    return true;
   }
   if (!respuestaUsuario || respuestaUsuario.trim() === "") return false;
   if (tipo === "comparacion") {
@@ -27,6 +29,12 @@ export function calificar(tipo, respuestaUsuario, respuestaOficial) {
 
 export function generarPista(item, temaTeoria) {
   const { tipo, enunciado } = item;
+
+  if (tipo === "division_cociente_residuo") {
+    return "Pista: sigue el algoritmo de la división del libro — busca cuántas veces cabe el divisor en el " +
+      "dividendo (o en el dividendo parcial) sin excederlo; ese número es el cociente. Lo que sobra después " +
+      "de multiplicar y restar es el residuo. Recuerda que a = b·p + r.";
+  }
 
   if (tipo === "valor_posicional_doble") {
     return "Pista: el valor absoluto del dígito indicado es el número que representa por sí solo (sin importar su " +
@@ -98,6 +106,24 @@ function explicarValorPosicionalDigito(item) {
       `${oficial.absoluto} × ${factor} = ${oficial.relativo}.`);
   }
   pasos.push(`Respuesta oficial del libro — valor absoluto: ${oficial.absoluto} · valor relativo: ${oficial.relativo}`);
+  return pasos;
+}
+
+function explicarDivisionCocienteResiduo(item) {
+  const oficial = item.respuestaOficial || item.respuesta_oficial;
+  const [dividendoTxt, divisorTxt] = item.enunciado.split("÷").map((s) => s.trim());
+  const dividendo = Number(dividendoTxt.replace(/\s/g, ""));
+  const divisor = Number(divisorTxt.replace(/\s/g, ""));
+  const pasos = [
+    `Se acomoda el dividendo (${dividendoTxt}) dentro de la caja divisora y el divisor (${divisorTxt}) fuera de ella.`,
+    "Se toman las cifras necesarias del dividendo para formar un número mayor o igual que el divisor, se " +
+      "divide, y esa cifra se coloca en el cociente; el producto de esa cifra por el divisor se resta del " +
+      "dividendo parcial. Se repite el proceso bajando cada cifra siguiente hasta terminar.",
+  ];
+  if (Number.isFinite(dividendo) && Number.isFinite(divisor) && divisor !== 0) {
+    pasos.push(`Comprobación: ${divisor} × ${oficial.cociente} + ${oficial.residuo} = ${dividendo}.`);
+  }
+  pasos.push(`Respuesta oficial del libro — cociente: ${oficial.cociente} · residuo: ${oficial.residuo}`);
   return pasos;
 }
 
@@ -199,6 +225,7 @@ function explicarLecturaEscritura(enunciado, respuestaOficial) {
 
 export function generarExplicacion(item) {
   const { tipo, tema, enunciado, respuestaOficial } = item;
+  if (tipo === "division_cociente_residuo") return explicarDivisionCocienteResiduo(item);
   if (tipo === "valor_posicional_doble") return explicarValorPosicionalDigito(item);
   if (tipo === "comparacion") return explicarComparacion(enunciado, respuestaOficial);
   if (tema === "Valor absoluto de un número") return explicarValorAbsoluto(enunciado, respuestaOficial);

@@ -102,7 +102,7 @@ export async function renderCategory(app, areaSlug) {
           <div class="capitulo-card-cuerpo">
             <span class="capitulo-card-area">Próximamente</span>
             <h3>Capítulo ${cap.numero}</h3>
-            <p>Se agregará en una fase siguiente</p>
+            <p>${escaparHtml(cap.titulo)}</p>
           </div>
         </div>`;
     }
@@ -323,6 +323,16 @@ function renderReactivo(clave, ej, item) {
         <label class="campo-doble-label" for="vr-${item.item}">Valor relativo</label>
         <input id="vr-${item.item}" type="text" class="entrada-texto entrada-relativo" placeholder="Valor relativo…" value="${vr}">
       </div>`;
+  } else if (ej.tipo === "division_cociente_residuo") {
+    const vc = estado?.respuesta?.cociente ? escaparHtml(estado.respuesta.cociente) : "";
+    const vres = estado?.respuesta?.residuo ? escaparHtml(estado.respuesta.residuo) : "";
+    controlHtml = `
+      <div class="opcion-texto-doble">
+        <label class="campo-doble-label" for="co-${item.item}">Cociente</label>
+        <input id="co-${item.item}" type="text" class="entrada-texto entrada-cociente" placeholder="Cociente…" value="${vc}">
+        <label class="campo-doble-label" for="re-${item.item}">Residuo</label>
+        <input id="re-${item.item}" type="text" class="entrada-texto entrada-residuo" placeholder="Residuo…" value="${vres}">
+      </div>`;
   } else {
     controlHtml = `
       <div class="opcion-texto">
@@ -376,6 +386,11 @@ function conectarReactivo(app, clave, ej, item) {
       const vr = nodo.querySelector(".entrada-relativo");
       return { absoluto: va ? va.value.trim() : "", relativo: vr ? vr.value.trim() : "" };
     }
+    if (ej.tipo === "division_cociente_residuo") {
+      const co = nodo.querySelector(".entrada-cociente");
+      const re = nodo.querySelector(".entrada-residuo");
+      return { cociente: co ? co.value.trim() : "", residuo: re ? re.value.trim() : "" };
+    }
     const input = nodo.querySelector(".entrada-texto");
     return input ? input.value.trim() : "";
   }
@@ -383,6 +398,9 @@ function conectarReactivo(app, clave, ej, item) {
   function respuestaEstaVacia(respuesta) {
     if (ej.tipo === "valor_posicional_doble") {
       return !respuesta || !respuesta.absoluto || !respuesta.relativo;
+    }
+    if (ej.tipo === "division_cociente_residuo") {
+      return !respuesta || !respuesta.cociente || !respuesta.residuo;
     }
     return !respuesta;
   }
@@ -414,6 +432,8 @@ function conectarReactivo(app, clave, ej, item) {
     store.marcarRevelada(clave, ej.numero_ejercicio, item.item);
     const textoRespuesta = (ej.tipo === "valor_posicional_doble")
       ? `Valor absoluto: <strong>${escaparHtml(item.respuesta_oficial.absoluto)}</strong> · Valor relativo: <strong>${escaparHtml(item.respuesta_oficial.relativo)}</strong>`
+      : (ej.tipo === "division_cociente_residuo")
+      ? `Cociente: <strong>${escaparHtml(item.respuesta_oficial.cociente)}</strong> · Residuo: <strong>${escaparHtml(item.respuesta_oficial.residuo)}</strong>`
       : `Respuesta oficial del libro: <strong>${escaparHtml(item.respuesta_oficial)}</strong>`;
     feedback.innerHTML = cajaFeedback("info", `<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='width:1em;height:1em' aria-hidden='true'><path d='M6 3h9l5 5v13H6Z'/><path d='M15 3v5h5'/><line x1='9' y1='13' x2='15' y2='13'/><line x1='9' y1='17' x2='15' y2='17'/></svg>`, textoRespuesta);
     refrescarProgresoTopbar();

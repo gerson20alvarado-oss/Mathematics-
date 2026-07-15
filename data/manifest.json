@@ -16,14 +16,16 @@
         "totalReactivos": 109,
         "disponible": true
       },
-      { "numero": 2, "titulo": "Próximamente", "slug": "capitulo-2", "archivo": null, "totalReactivos": 0, "disponible": false },
-      { "numero": 3, "titulo": "Próximamente", "slug": "capitulo-3", "archivo": null, "totalReactivos": 0, "disponible": false },
-      { "numero": 4, "titulo": "Próximamente", "slug": "capitulo-4", "archivo": null, "totalReactivos": 0, "disponible": false },
-      { "numero": 5, "titulo": "Próximamente", "slug": "capitulo-5", "archivo": null, "totalReactivos": 0, "disponible": false },
-      { "numero": 6, "titulo": "Próximamente", "slug": "capitulo-6", "archivo": null, "totalReactivos": 0, "disponible": false },
-      { "numero": 7, "titulo": "Próximamente", "slug": "capitulo-7", "archivo": null, "totalReactivos": 0, "disponible": false },
-      { "numero": 8, "titulo": "Próximamente", "slug": "capitulo-8", "archivo": null, "totalReactivos": 0, "disponible": false },
-      { "numero": 9, "titulo": "Próximamente", "slug": "capitulo-9", "archivo": null, "totalReactivos": 0, "disponible": false }
+      { "numero": 2, "titulo": "Números enteros", "slug": "capitulo-2", "archivo": "capitulo2.json", "paginaInicio": 16, "paginaFin": 32, "totalReactivos": 181, "disponible": true },
+      { "numero": 3, "titulo": "Teoría de números", "slug": "capitulo-3", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 4, "titulo": "Números racionales", "slug": "capitulo-4", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 5, "titulo": "Números decimales", "slug": "capitulo-5", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 6, "titulo": "Potenciación y radicación", "slug": "capitulo-6", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 7, "titulo": "Notación científica y logaritmos", "slug": "capitulo-7", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 8, "titulo": "Razones y proporciones", "slug": "capitulo-8", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 9, "titulo": "Sistemas de numeración", "slug": "capitulo-9", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 10, "titulo": "Sistema métrico decimal y números denominados", "slug": "capitulo-10", "archivo": null, "totalReactivos": 0, "disponible": false },
+      { "numero": 11, "titulo": "Razonamiento aritmético", "slug": "capitulo-11", "archivo": null, "totalReactivos": 0, "disponible": false }
     ]
   },
   {

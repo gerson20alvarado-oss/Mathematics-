@@ -75,6 +75,24 @@ previa**, con una explicación del motivo antes de tocarlos:
 - Integración de KaTeX (`vendor/katex/`, `renderizarMate()`).
 - Los tipos de reactivo existentes (`comparacion`, `texto`,
   `valor_posicional_doble`).
+- **Sincronización con Supabase** (`js/sync.js`, `js/auth.js`,
+  `js/supabase-client.js`, `sql/schema.sql`) y **GitHub Auth como método de
+  inicio de sesión**. Desde esta versión forman parte del núcleo oficial de
+  la plataforma, no de una capa experimental — LocalStorage sigue siendo el
+  almacenamiento por defecto y la app sigue funcionando 100 % sin sesión
+  iniciada; la sincronización es la capa adicional ya adoptada.
+- Las reglas de fusión de progreso (`revelada` = OR, `intentos` = máximo,
+  resto = timestamp del servidor más reciente, conflicto genuino = pregunta
+  al usuario) y el esquema de `progreso_items` en Supabase.
+
+**Corrección vs. rediseño:** una corrección como la de `sync.js` (ajustar la
+serialización de una fila antes del `POST` para no violar una columna
+`NOT NULL`) es un **bugfix** — no requiere romper este congelamiento ni pedir
+aprobación de arquitectura, porque no cambia ninguna estructura, contrato ni
+comportamiento visible; sólo hace que el código ya acordado funcione como se
+diseñó. Un cambio de arquitectura sería, por ejemplo, alterar el esquema de
+`progreso_items`, el formato de `ms:progreso:v1`, o el flujo de fusión — eso
+sí requiere explicar el motivo y esperar aprobación antes de tocarlo.
 
 ### Contrato de compatibilidad del progreso
 
